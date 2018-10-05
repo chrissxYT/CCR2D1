@@ -51,7 +51,7 @@ struct sprite
 //a char[][] the renderer renders into and the drawer displays
 struct buffer
 {
-	//the [height][width] char array the chars are saved to
+	//the char array the chars are saved to
 	char **c;
 } buffer;
 
@@ -75,9 +75,11 @@ struct ccr2d1
 //mallocs space for 2 workers,
 //mallocs a wid * hei buffer
 struct ccr2d1 *c2dnew(int wid, int hei);
+
 //starts the 2 worker threads,
 //sets run to true
 void c2dstart(struct ccr2d1 *obj);
+
 //a combination of a stop and a delete
 //sets run to false,
 //stops the 2 worker threads,
@@ -85,5 +87,6 @@ void c2dstart(struct ccr2d1 *obj);
 //frees the whole buffer,
 //frees the CCR2D1 object
 void c2dstop(struct ccr2d1 *obj);
+
 //sleeps the thread for the given milliseconds
 void sleep_ms(int ms);

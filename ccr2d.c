@@ -13,7 +13,7 @@ void *render(void *vargp)
 	struct ccr2d1 *obj = (struct ccr2d1*)vargp;
 	while(1)
 	{
-		//draw sprites to buf fer
+		//draw sprites to buffer
 	}
 }
 
@@ -24,14 +24,9 @@ void *draw(void *vargp)
 	while(1)
 	{
 		puts(M_0_0);
-		char **c = obj->bfr.c;
-		for(int i = 0; i < sizeof(c) / sizeof(char*); i++)
+		for(int i = 0; i < obj->hei; i++)
 		{
-			char *d = c[i];
-			for(int j = 0; j < sizeof(d); i++)
-			{
-				putc(d[j], stdout);
-			}
+			puts(obj->bfr.c[i]);
 			putc('\n', stdout);
 		}
 		sleep_ms(1);
@@ -48,7 +43,7 @@ struct ccr2d1 *c2dnew(int wid, int hei)
 	obj->bfr.c = malloc(hei);
 	for(int i = 0; i < hei; i++)
 	{
-		obj->bfr.c[i] = malloc(wid);
+		obj->bfr.c[i] = malloc(wid * 10);
 	}
 }
 
