@@ -7,13 +7,53 @@
 #include <unistd.h>
 #endif
 
+void quicksort(sprite *spr, int first, int last)
+{
+	if (first < last)
+	{
+		sprite temp;
+		int pivot;
+		int i = first;
+		int j = last;
+		while (i < j)
+		{
+			while (spr[i].pri <= spr[pivot].pri && i < last)
+			{
+				i++;
+			}
+			while (spr[j].pri > spr[pivot].pri)
+			{
+				j--;
+			}
+			if (i < j)
+			{
+				temp = spr[i];
+				spr[i] = spr[j];
+				spr[j] = temp;
+			}
+		}
+		temp = spr[pivot];
+		spr[pivot] = spr[j];
+		spr[j] = temp;
+		quicksort(spr, first, j - 1);
+		quicksort(spr, j + 1, last);
+	}
+}
+
 void *render(void *vargp)
 {
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, 0);
 	struct ccr2d1 *obj = (struct ccr2d1*)vargp;
 	while(1)
 	{
-		//draw sprites to buffer
+		pixel pxl[obj->wid * obj->hei];
+		memcpy(pxl, obj->bck, obj->wid * obj->hei * sizeof(sprite));
+		int spc = obj->spc;
+		sprite *spr = malloc(spc * sizeof(sprite));
+		memcpy(spr, obj->spr, spc * sizeof(sprite))
+		quicksort(spr, 0, spc - 1);
+		//render all the sprites
+		free(spr);
 	}
 }
 
@@ -33,7 +73,25 @@ void *draw(void *vargp)
 	}
 }
 
-struct ccr2d1 *c2dnew(int wid, int hei)
+void c2dspradd(struct ccr2d1 *obj, int x, int y,
+	int pri, int wid, int hei, pixel *pxl)
+{
+	obj->spr[obj->spc].pri = pri;
+	obj->spr[obj->spc].wid = wid;
+	obj->spr[obj->spc].hei = hei;
+	obj->spr[obj->spc].pxl = pxl;
+	obj->spr[obj->spc].x = x;
+	obj->spr[obj->spc].y = y;
+	obj->spc++;
+	obj->spr[obj->spc].pri = NOSPR;
+	obj->spr[obj->spc].wid = NOSPR;
+	obj->spr[obj->spc].hei = NOSPR;
+	obj->spr[obj->spc].x = NOSPR;
+	obj->spr[obj->spc].y = NOSPR;
+	obj->spr[obj->spc].pxl = 0;
+}
+
+struct ccr2d1 *c2dnew(int wid, int hei, int max_spr)
 {
 	struct ccr2d1 *obj = malloc(sizeof(ccr2d1));
 	obj->wid = wid;
@@ -45,6 +103,15 @@ struct ccr2d1 *c2dnew(int wid, int hei)
 	{
 		obj->bfr.c[i] = malloc(wid * 10);
 	}
+	obj->spr = malloc(sizeof(sprite) * max_spr);
+	obj->spr[0].pri = NOSPR;
+	obj->spr[0].wid = NOSPR;
+	obj->spr[0].hei = NOSPR;
+	obj->spr[0].x = NOSPR;
+	obj->spr[0].y = NOSPR;
+	obj->spr[0].pxl = 0;
+	obj->spc = 0;
+	//malloc and set background
 }
 
 void c2dstart(struct ccr2d1 *obj)

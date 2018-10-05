@@ -2,31 +2,38 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+//using constexpr for many string constants
+//because this only allocs once in the binary
+//and not once in every pixel
+
 //All the color codes for the pixels
-#define C_RESET "\e[0m"
-#define C_BOLD "\e[1m"
-#define C_DIM "\e[2m"
-#define C_BLINK "\e[5m"
-#define C_HIDDEN "\e[8m"
-#define C_BLACK "\e[30m"
-#define C_RED "\e[31m"
-#define C_GREEN "\e[32m"
-#define C_YELLOW "\e[33m"
-#define C_BLUE "\e[34m"
-#define C_MAGENTA "\e[35m"
-#define C_CYAN "\e[36m"
-#define C_LIGHT_GRAY "\e[37m"
-#define C_DARK_GRAY "\e[90m"
-#define C_LIGHT_RED "\e[91m"
-#define C_LIGHT_GREEN "\e[92m"
-#define C_LIGHT_YELLOW "\e[93m"
-#define C_LIGHT_BLUE "\e[94m"
-#define C_LIGHT_MAGENTA "\e[95m"
-#define C_LIGHT_CYAN "\e[96m"
-#define C_WHITE "\e[97m"
+constexpr char *C_RESET = "\e[0m";
+constexpr char *C_BOLD = "\e[1m";
+constexpr char *C_DIM = "\e[2m";
+constexpr char *C_BLINK = "\e[5m";
+constexpr char *C_HIDDEN = "\e[8m";
+constexpr char *C_BLACK = "\e[30m";
+constexpr char *C_RED = "\e[31m";
+constexpr char *C_GREEN = "\e[32m";
+constexpr char *C_YELLOW = "\e[33m";
+constexpr char *C_BLUE = "\e[34m";
+constexpr char *C_MAGENTA = "\e[35m";
+constexpr char *C_CYAN = "\e[36m";
+constexpr char *C_LIGHT_GRAY = "\e[37m";
+constexpr char *C_DARK_GRAY = "\e[90m";
+constexpr char *C_LIGHT_RED = "\e[91m";
+constexpr char *C_LIGHT_GREEN = "\e[92m";
+constexpr char *C_LIGHT_YELLOW = "\e[93m";
+constexpr char *C_LIGHT_BLUE = "\e[94m";
+constexpr char *C_LIGHT_MAGENTA = "\e[95m";
+constexpr char *C_LIGHT_CYAN = "\e[96m";
+constexpr char *C_WHITE = "\e[97m";
 
 //move the cursor to 0;0
-#define M_0_0 "\e[0;0f"
+constexpr char *M_0_0 = "\e[0;0f";
+
+//no sprite
+#define NOSPR -1
 
 //a single pixel in an image
 struct pixel
@@ -40,11 +47,17 @@ struct pixel
 //a sprite displayed on the screen
 struct sprite
 {
-	//width in console pixels
+	//priority (0 is lowest, int_max highest, <0 means invalid)
+	int pri;
+	//width in console pixels, <0 means invalid sprite
 	int wid;
-	//height in console pixels
+	//height in console pixels, <0 means invalid sprite
 	int hei;
-	//array of pixels / the actual image
+	//x position
+	int x;
+	//y position
+	int y;
+	//array of pixels / the actual image, null means invalid
 	struct pixel *pxl;
 } sprite;
 
@@ -68,13 +81,21 @@ struct ccr2d1
 	int wid;
 	//the render height
 	int hei;
+	//all the sprites to be drawn
+	sprite *spr;
+	//sprite count
+	int spc;
+	//the background
+	pixel *bck;
 } ccr2d1;
 
 //mallocs a new CCR2D1 object,
 //sets width and height,
 //mallocs space for 2 workers,
-//mallocs a wid * hei buffer
-struct ccr2d1 *c2dnew(int wid, int hei);
+//mallocs a wid * hei buffer,
+//mallocs space for max_spr sprites,
+//mallocs bck and copies it
+struct ccr2d1 *c2dnew(pixel *bck, int wid, int hei, int max_spr);
 
 //starts the 2 worker threads,
 //sets run to true
@@ -87,6 +108,9 @@ void c2dstart(struct ccr2d1 *obj);
 //frees the whole buffer,
 //frees the CCR2D1 object
 void c2dstop(struct ccr2d1 *obj);
+
+void c2dspradd(struct ccr2d1 *obj, int x, int y,
+	int pri, int wid, int hei, pixel *pxl);
 
 //sleeps the thread for the given milliseconds
 void sleep_ms(int ms);
