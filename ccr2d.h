@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+//All the color codes for the pixels
 #define C_RESET "\e[0m"
 #define C_BOLD "\e[1m"
 #define C_DIM "\e[2m"
@@ -24,32 +25,48 @@
 #define C_LIGHT_CYAN "\e[96m"
 #define C_WHITE "\e[97m"
 
+//move the cursor to 0;0
 #define M_0_0 "\e[0;0f"
 
+//a single pixel in an image
 struct pixel
 {
-	int dnsty;
+	//the char printed
+	char dnsty;
+	//ascii color code
 	char *color;
 } pixel;
 
+//a sprite displayed on the screen
 struct sprite
 {
+	//width in console pixels
 	int wid;
+	//height in console pixels
 	int hei;
+	//array of pixels / the actual image
 	struct pixel *pxl;
 } sprite;
 
+//a char[][] the renderer renders into and the drawer displays
 struct buffer
 {
+	//the [height][width] char array the chars are saved to
 	char **c;
 } buffer;
 
+//the main object that holds all the information of CCR2D v1
 struct ccr2d1
 {
+	//the currently rendered chars
 	struct buffer bfr;
+	//true if started false if not
 	int run;
+	//an array of pthreads: the workers rendering, drawing, etc.
 	pthread_t *wkr;
+	//the render width
 	int wid;
+	//the render height
 	int hei;
 } ccr2d1;
 
