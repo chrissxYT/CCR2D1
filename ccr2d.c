@@ -46,13 +46,30 @@ void *render(void *vargp)
 	struct ccr2d1 *obj = (struct ccr2d1*)vargp;
 	while(1)
 	{
-		pixel pxl[obj->wid * obj->hei];
-		memcpy(pxl, obj->bck, obj->wid * obj->hei * sizeof(sprite));
+		pixel pxl[obj->wid][obj->hei];
+		memcpy(pxl, obj->bck,
+				obj->wid * obj->hei *sizeof(sprite));
 		int spc = obj->spc;
 		sprite *spr = malloc(spc * sizeof(sprite));
 		memcpy(spr, obj->spr, spc * sizeof(sprite))
 		quicksort(spr, 0, spc - 1);
-		//render all the sprites
+		for(int i = 0; i < spc; i++)
+		{
+			sprite s = spr[i];
+			for(int j = 0; j < s->hei; j++)
+			{
+				for(int k = 0; k < s->wid; k++)
+				{
+					pixel p = s->pxl[j*s->wid+k];
+					//null color ^= transparent
+					if(p.color != 0)
+					{
+						pxl[k+s->x][j+s->y]
+							= p;
+					}
+				}
+			}
+		}
 		free(spr);
 	}
 }
@@ -91,7 +108,7 @@ void c2dspradd(struct ccr2d1 *obj, int x, int y,
 	obj->spr[obj->spc].pxl = 0;
 }
 
-struct ccr2d1 *c2dnew(int wid, int hei, int max_spr)
+struct ccr2d1 *c2dnew(pixel *bck, int wid, int hei, int max_spr)
 {
 	struct ccr2d1 *obj = malloc(sizeof(ccr2d1));
 	obj->wid = wid;
@@ -111,7 +128,9 @@ struct ccr2d1 *c2dnew(int wid, int hei, int max_spr)
 	obj->spr[0].y = NOSPR;
 	obj->spr[0].pxl = 0;
 	obj->spc = 0;
-	//malloc and set background
+	pixel *bck_a = malloc(sizeof(bck));
+	memcpy(bck_a, bck, sizeof(bck));
+	obj->bck = bck_a;
 }
 
 void c2dstart(struct ccr2d1 *obj)
