@@ -7,17 +7,17 @@
 #include <unistd.h>
 #endif
 
-void quicksort(sprite *spr, int first, int last)
+void quicksort(struct sprite *spr, int first, int last)
 {
 	if (first < last)
 	{
-		sprite temp;
+		struct sprite temp;
 		int pivot;
 		int i = first;
 		int j = last;
 		while (i < j)
 		{
-			while (spr[i].pri <= spr[pivot].pri && i < last)
+			while (spr[i].pri<=spr[pivot].pri && i < last)
 			{
 				i++;
 			}
@@ -46,25 +46,26 @@ void *render(void *vargp)
 	struct ccr2d1 *obj = (struct ccr2d1*)vargp;
 	while(1)
 	{
-		pixel pxl[obj->wid][obj->hei];
+		struct pixel pxl[obj->wid][obj->hei];
 		memcpy(pxl, obj->bck,
 				obj->wid * obj->hei *sizeof(sprite));
 		int spc = obj->spc;
-		sprite *spr = malloc(spc * sizeof(sprite));
-		memcpy(spr, obj->spr, spc * sizeof(sprite))
+		struct sprite *spr = malloc(spc * sizeof(sprite));
+		memcpy(spr, obj->spr, spc * sizeof(sprite));
 		quicksort(spr, 0, spc - 1);
 		for(int i = 0; i < spc; i++)
 		{
-			sprite s = spr[i];
-			for(int j = 0; j < s->hei; j++)
+			struct sprite s = spr[i];
+			for(int j = 0; j < s.hei; j++)
 			{
-				for(int k = 0; k < s->wid; k++)
+				for(int k = 0; k < s.wid; k++)
 				{
-					pixel p = s->pxl[j*s->wid+k];
+					struct pixel p =
+						s.pxl[j * s.wid + k];
 					//null color ^= transparent
 					if(p.color != 0)
 					{
-						pxl[k+s->x][j+s->y]
+						pxl[k + s.x][j + s.y]
 							= p;
 					}
 				}
@@ -91,7 +92,7 @@ void *draw(void *vargp)
 }
 
 void c2dspradd(struct ccr2d1 *obj, int x, int y,
-	int pri, int wid, int hei, pixel *pxl)
+	int pri, int wid, int hei, struct pixel *pxl)
 {
 	obj->spr[obj->spc].pri = pri;
 	obj->spr[obj->spc].wid = wid;
@@ -108,7 +109,7 @@ void c2dspradd(struct ccr2d1 *obj, int x, int y,
 	obj->spr[obj->spc].pxl = 0;
 }
 
-struct ccr2d1 *c2dnew(pixel *bck, int wid, int hei, int max_spr)
+struct ccr2d1 *c2dnew(struct pixel *bck,int wid, int hei, int max_spr)
 {
 	struct ccr2d1 *obj = malloc(sizeof(ccr2d1));
 	obj->wid = wid;
@@ -128,7 +129,7 @@ struct ccr2d1 *c2dnew(pixel *bck, int wid, int hei, int max_spr)
 	obj->spr[0].y = NOSPR;
 	obj->spr[0].pxl = 0;
 	obj->spc = 0;
-	pixel *bck_a = malloc(sizeof(bck));
+	struct pixel *bck_a = malloc(sizeof(bck));
 	memcpy(bck_a, bck, sizeof(bck));
 	obj->bck = bck_a;
 }
@@ -154,6 +155,16 @@ void c2dstop(struct ccr2d1 *obj)
 	}
 	free(obj->bfr.c);
 	free(obj);
+}
+
+void pxlarr(int wid, int hei, struct pixel *bfr)
+{
+	int i = wid * hei;
+	for(int j = 0; j < i; j++)
+	{
+		bfr[j].dnsty = D_0;
+		bfr[j].color = C_RESET;
+	}
 }
 
 void sleep_ms(int ms)

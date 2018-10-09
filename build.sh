@@ -1,2 +1,2 @@
 #!/bin/sh
-gcc ccr2d.c -shared -pthread -fPIC -s -o ccr2d.so
+gcc -x c ccr2d.c -shared -pthread -fPIC -s -o libccr2d.so
