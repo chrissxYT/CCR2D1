@@ -38,61 +38,58 @@ const char *M_0_0 = "\e[0;0f";
 #define D_2 177
 #define D_3 178
 
-//no sprite
-#define NOSPR -1
-
 //a single pixel in an image
-struct pixel
+typedef struct
 {
 	//the char printed
 	char dnsty;
 	//ascii color code
-	char *color;
+	const char *color;
 } pixel;
 
 //a sprite displayed on the screen
-struct sprite
+typedef struct
 {
-	//priority (0 is lowest, int_max highest, <0 means invalid)
-	int pri;
-	//width in console pixels, <0 means invalid sprite
-	int wid;
-	//height in console pixels, <0 means invalid sprite
-	int hei;
+	//priority (0 is lowest, 0xffffffff highest)
+	unsigned pri;
+	//width in console pixels
+	long unsigned wid;
+	//height in console pixels
+	long unsigned hei;
 	//x position
 	int x;
 	//y position
 	int y;
 	//array of pixels / the actual image, null means invalid
-	struct pixel *pxl;
+	pixel *pxl;
 } sprite;
 
 //a char[][] the renderer renders into and the drawer displays
-struct buffer
+typedef struct
 {
 	//the char array the chars are saved to
 	char **c;
 } buffer;
 
 //the main object that holds all the information of CCR2D v1
-struct ccr2d1
+typedef struct
 {
 	//the currently rendered chars
-	struct buffer bfr;
-	//true if started false if not
+	buffer bfr;
+	//0 if not running
 	int run;
 	//an array of pthreads: the workers rendering, drawing, etc.
 	pthread_t *wkr;
 	//the render width
-	int wid;
+	long unsigned wid;
 	//the render height
-	int hei;
+	long unsigned hei;
 	//all the sprites to be drawn
-	struct sprite *spr;
+	sprite *spr;
 	//sprite count
-	int spc;
+	unsigned spc;
 	//the background
-	struct pixel *bck;
+	pixel *bck;
 } ccr2d1;
 
 //mallocs a new CCR2D1 object,
@@ -101,11 +98,12 @@ struct ccr2d1
 //mallocs a wid * hei buffer,
 //mallocs space for max_spr sprites,
 //mallocs bck and copies it
-struct ccr2d1 *c2dnew(struct pixel *bck,int wid,int hei, int max_spr);
+ccr2d1 *c2dnew(pixel *bck, long unsigned wid, long unsigned hei,
+		unsigned max_spr);
 
 //starts the 2 worker threads,
 //sets run to true
-void c2dstart(struct ccr2d1 *obj);
+void c2dstart(ccr2d1 *obj);
 
 //a combination of a stop and a delete
 //sets run to false,
@@ -113,13 +111,13 @@ void c2dstart(struct ccr2d1 *obj);
 //frees the space for the 2 workers,
 //frees the whole buffer,
 //frees the CCR2D1 object
-void c2dstop(struct ccr2d1 *obj);
+void c2dstop(ccr2d1 *obj);
 
 //adds a new sprite to the obj's spr
-void c2dspradd(struct ccr2d1 *obj, int x, int y,
-	int pri, int wid, int hei, struct pixel *pxl);
+void c2dspradd(ccr2d1 *obj, int x, int y, unsigned pri,
+		long unsigned wid, long unsigned hei, pixel *pxl);
 
 //sleeps the thread for the given milliseconds
 void sleep_ms(int ms);
 
-void pxlarr(int wid, int hei, struct pixel *bfr);
+void pxlarr(long unsigned wid, long unsigned hei, pixel *bfr);

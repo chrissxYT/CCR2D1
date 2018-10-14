@@ -3,11 +3,11 @@
 #define wid 20
 #define hei 10
 
-int main(int argc, char **argv)
+int main()
 {
-	struct pixel bck[wid * hei];
+	pixel bck[wid * hei];
 	pxlarr(wid, hei, bck);
-	struct ccr2d1 *obj = c2dnew(bck, 20, 10, 10);
+	ccr2d1 *obj = c2dnew(bck, 20, 10, 10);
 	c2dstart(obj);
 	while(1)
 		//if is_amd64 || is_x86
@@ -25,4 +25,5 @@ int main(int argc, char **argv)
 		__asm__("pause");
 #else
 		;
+#endif
 }
