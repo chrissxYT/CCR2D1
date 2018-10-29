@@ -1,8 +1,7 @@
 #include "ccr2d.h"
+
 #ifdef _WIN32
 #include <windows.h>
-#elif _POSIX_C_SOURCE > 199308
-#include <time.h>
 #else
 #include <unistd.h>
 #endif
@@ -47,11 +46,18 @@ void *render(void *vargp)
 	while(1)
 	{
 		pixel pxl[obj->wid][obj->hei];
-		memcpy(pxl, obj->bck,
-				obj->wid * obj->hei * sizeof(sprite));
+		for(long unsigned y = 0; y < obj->hei; y++)
+		{
+			long unsigned i = y * obj->wid;
+			for(long unsigned x = 0; x < obj->wid; x++)
+			{
+				pxl[x][y] = obj->bck[i + x];
+			}
+		}
 		unsigned spc = obj->spc;
-		sprite *spr = malloc(spc * sizeof(sprite));
-		memcpy(spr, obj->spr, spc * sizeof(sprite));
+		long unsigned spc_sizeof_sprite = spc * sizeof(sprite);
+		sprite *spr = malloc(spc_sizeof_sprite);
+		memcpy(spr, obj->spr, spc_sizeof_sprite);
 		quicksort(spr, 0, spc - 1);
 		for(unsigned i = 0; i < spc; i++)
 		{
@@ -75,6 +81,7 @@ void *render(void *vargp)
 			}
 		}
 		free(spr);
+		sleep_ms(1);
 	}
 }
 
@@ -114,7 +121,7 @@ ccr2d1 *c2dnew(pixel *bck, long unsigned wid, long unsigned hei,
 	obj->hei = hei;
 	obj->run = 0;
 	obj->wkr = malloc(sizeof(pthread_t) * 2);
-	obj->bfr.c = malloc(hei);
+	obj->bfr.c = malloc(hei * sizeof(char*));
 	for(long unsigned i = 0; i < hei; i++)
 	{
 		obj->bfr.c[i] = malloc(wid * 10);
@@ -161,15 +168,10 @@ void pxlarr(long unsigned wid, long unsigned hei, pixel *bfr)
 	}
 }
 
-void sleep_ms(int ms)
+void sleep_ms(unsigned ms)
 {
-#ifdef WIN32
+#ifdef _WIN32
     Sleep(ms);
-#elif _POSIX_C_SOURCE > 199308
-    struct timespec ts;
-    ts.tv_sec = ms / 1000;
-   ts.tv_nsec = (ms % 1000) * 1000000;
-    nanosleep(&ts, 0);
 #else
     usleep(ms * 1000);
 #endif

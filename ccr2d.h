@@ -30,7 +30,7 @@ const char *C_LIGHT_MAGENTA = "\e[95m";
 const char *C_LIGHT_CYAN = "\e[96m";
 const char *C_WHITE = "\e[97m";
 
-//move the cursor to 0;0
+//move the cursor to (0;0)
 const char *M_0_0 = "\e[0;0f";
 
 #define D_0 32
@@ -118,6 +118,7 @@ void c2dspradd(ccr2d1 *obj, int x, int y, unsigned pri,
 		long unsigned wid, long unsigned hei, pixel *pxl);
 
 //sleeps the thread for the given milliseconds
-void sleep_ms(int ms);
+void sleep_ms(unsigned ms);
 
+//initialize a new pixel array at the buffer
 void pxlarr(long unsigned wid, long unsigned hei, pixel *bfr);
