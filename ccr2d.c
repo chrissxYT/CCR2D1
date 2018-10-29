@@ -82,6 +82,30 @@ void *render(void *vargp)
 			}
 		}
 		free(spr);
+		for(long unsigned y = 0; y < obj->hei; y++)
+		{
+			long unsigned j = obj->wid * 10;
+			char bfr[j];
+			for(long unsigned i = 0; i < j; i++)
+			{
+				bfr[i] = 0;
+			}
+			for(long unsigned x = 0; x < obj->wid; x++)
+			{
+				long unsigned i = strlen(bfr);
+				pixel p = pxl[x][y];
+				long unsigned k = strlen(p.color);
+				for(long unsigned l = 0; l < k; l++)
+				{
+					bfr[i + l] = p.color[l];
+				}
+				bfr[strlen(bfr)] = p.dnsty;
+			}
+			for(long unsigned i = 0; i < j; i++)
+			{
+				obj->bfr.c[i][y] = bfr[i];
+			}
+		}
 		sleep_ms(1);
 	}
 }
