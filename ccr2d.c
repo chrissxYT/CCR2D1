@@ -58,7 +58,8 @@ void *render(void *vargp)
 		long unsigned spc_sizeof_sprite = spc * sizeof(sprite);
 		sprite *spr = malloc(spc_sizeof_sprite);
 		memcpy(spr, obj->spr, spc_sizeof_sprite);
-		quicksort(spr, 0, spc - 1);
+		if(spc != 0)
+			quicksort(spr, 0, spc - 1);
 		for(unsigned i = 0; i < spc; i++)
 		{
 			sprite s = spr[i];
@@ -95,7 +96,6 @@ void *draw(void *vargp)
 		for(long unsigned i = 0; i < obj->hei; i++)
 		{
 			puts(obj->bfr.c[i]);
-			putc('\n', stdout);
 		}
 		sleep_ms(1);
 	}

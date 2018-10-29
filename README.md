@@ -1,5 +1,7 @@
 # CCR2D
 CConsoleRetro2D - C library for NES/GB-like games in the console
+## Disclaimer
+This library is not production ready, it's still full of bugs.
 ## Sample code
 ```c
 #include "ccr2d.h"
@@ -10,7 +12,7 @@ int main()
     pixel bck[70 * 28];
     //initialize the background empty
     pxlarr(70, 28, bck);
-    //create new CCR2D v1 render object
+    //create new CCR2D v1 object
     ccr2d1 *obj = c2dnew(bck, 70, 28, 10);
     //start rendering and drawing
     c2dstart(obj);
