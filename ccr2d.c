@@ -1,20 +1,13 @@
 #include "ccr2d.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#include <conio.h>
-#else
-#include <unistd.h>
-#endif
-
-void quicksort(sprite *spr, unsigned first, unsigned last)
+void quicksort(sprite *spr, uint first, uint last)
 {
 	if (first < last)
 	{
 		sprite temp;
-		unsigned pivot = first;
-		unsigned i = first;
-		unsigned j = last;
+		uint pivot = first;
+		uint i = first;
+		uint j = last;
 		while (i < j)
 		{
 			while (spr[i].pri<=spr[pivot].pri && i < last)
@@ -41,33 +34,37 @@ void quicksort(sprite *spr, unsigned first, unsigned last)
 }
 
 //background and sprites to pixels
-void *bs2p(void *vargp)
+#if WIN
+DWORD WINAPI
+#else
+void*
+#endif
+bs2p(void *vargp)
 {
-	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, 0);
-	ccr2d1 *obj = (ccr2d1*)vargp;
-	while(1)
+	ccr2d1 *obj = setup_thread(vargp);
+	while (1)
 	{
-		pixel pxl[obj->wid][obj->hei];
-		for(long unsigned y = 0; y < obj->hei; y++)
+		pixel **pxl = pxlarr2dmallocxy(obj->wid, obj->hei);
+		for (ulong y = 0; y < obj->hei; y++)
 		{
-			long unsigned i = y * obj->wid;
-			for(long unsigned x = 0; x < obj->wid; x++)
+			ulong i = y * obj->wid;
+			for (ulong x = 0; x < obj->wid; x++)
 			{
 				pxl[x][y] = obj->bck[i + x];
 			}
 		}
-		unsigned spc = obj->spc;
-		long unsigned spc_sizeof_sprite = spc * sizeof(sprite);
-		sprite spr[spc];
+		uint spc = obj->spc;
+		ulong spc_sizeof_sprite = spc * sizeof(sprite);
+		sprite *spr = malloc(spc);
 		memcpy(spr, obj->spr, spc_sizeof_sprite);
 		if(spc != 0)
 			quicksort(spr, 0, spc - 1);
-		for(unsigned i = 0; i < spc; i++)
+		for(uint i = 0; i < spc; i++)
 		{
 			sprite s = spr[i];
-			for(long unsigned j = 0; j < s.hei; j++)
+			for(ulong j = 0; j < s.hei; j++)
 			{
-				for(long unsigned k = 0; k < s.wid; k++)
+				for(ulong k = 0; k < s.wid; k++)
 				{
 					pixel p =
 						s.pxl[j * s.wid + k];
@@ -83,95 +80,114 @@ void *bs2p(void *vargp)
 				}
 			}
 		}
-		for(unsigned long x = 0; x < obj->wid; x++)
+		for(ulong x = 0; x < obj->wid; x++)
 		{
-			for(unsigned long y = 0; y < obj->hei; y++)
+			for(ulong y = 0; y < obj->hei; y++)
 			{
 				obj->bfr.p[x][y] = pxl[x][y];
 			}
 		}
+		pxlarr2dfreexy(pxl, obj->wid);
+		free(spr);
 		sleep_ms(obj->slp);
 	}
 }
 
 //pixels to chars
-void *p2c(void *vargp)
+#if WIN
+DWORD WINAPI
+#else
+void*
+#endif
+p2c(void *vargp)
 {
-	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, 0);
-	ccr2d1 *obj = (ccr2d1*)vargp;
+	ccr2d1 *obj = setup_thread(vargp);
 	while(1)
 	{
-		for(long unsigned y = 0; y < obj->hei; y++)
+		for(ulong y = 0; y < obj->hei; y++)
 		{
-			long unsigned j = obj->wid * 10;
-			char bfr[j];
-			for(long unsigned i = 0; i < j; i++)
+			ulong j = obj->wid * 10;
+			char *bfr = malloc(j);
+			for(ulong i = 0; i < j; i++)
 			{
 				bfr[i] = 0;
 			}
-			for(long unsigned x = 0; x < obj->wid; x++)
+			for(ulong x = 0; x < obj->wid; x++)
 			{
-				long unsigned i = strlen(bfr);
+				ulong i = strlen(bfr);
 				pixel p = obj->bfr.p[x][y];
-				long unsigned k = strlen(p.color);
-				for(long unsigned l = 0; l < k; l++)
+				ulong k = strlen(p.color);
+				for(ulong l = 0; l < k; l++)
 				{
 					bfr[i + l] = p.color[l];
 				}
 				bfr[strlen(bfr)] = p.dnsty;
 			}
-			for(long unsigned i = 0; i < j; i++)
+			for(ulong i = 0; i < j; i++)
 			{
 				obj->bfr.c[y][i] = bfr[i];
 			}
+			free(bfr);
 		}
 		sleep_ms(obj->slp);
 	}
 }
 
 //chars to screen
-void *c2s(void *vargp)
+#if WIN
+DWORD WINAPI
+#else
+void*
+#endif
+c2s(void *vargp)
 {
-	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, 0);
-	ccr2d1 *obj = (ccr2d1*)vargp;
+	ccr2d1 *obj = setup_thread(vargp);
 	while(1)
 	{
 		puts(M_0_0);
-		for(long unsigned i = 0; i < obj->hei; i++)
+		for(ulong i = 0; i < obj->hei; i++)
 		{
-			puts(obj->bfr.c[i]);
+			int *s = obj->bfr.c[i];
+			for (ulong j = 0; s[j]; j++)
+			{
+				putchar(s[j]);
+			}
 		}
 		sleep_ms(obj->slp);
 	}
 }
 
 //key controller
-void *kc(void *vargp)
+#if WIN
+DWORD WINAPI
+#else
+void*
+#endif
+kc(void *vargp)
 {
-	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, 0);
-	ccr2d1 *obj = (ccr2d1*)vargp;
-#ifndef _WIN32
+	ccr2d1 *obj = setup_thread(vargp);
+#if !WIN
 	system("/bin/stty raw");
 #endif
 	while(1)
 	{
 		int i;
-#ifdef _WIN32
+#if WIN
 		i = _getch();
 #else
 		i = getchar();
 #endif
 		if(i < 5)
 			exit(0);
-		for(unsigned j = 0; j < obj->klc; j++)
+		for(uint j = 0; j < obj->klc; j++)
 		{
-			((void(*)())obj->kel[j])(i);
+			obj->kel[j](i);
 		}
 	}
 }
 
-void c2dspradd(ccr2d1 *obj, int x, int y, unsigned pri,
-		long unsigned wid, long unsigned hei, pixel *pxl)
+void c2dspradd(ccr2d1 *obj, int x, int y, uint pri,
+	ulong wid, ulong hei, pixel *pxl)
 {
 	//setting the sprite first avoids toc-tou
 	obj->spr[obj->spc].pri = pri;
@@ -183,27 +199,27 @@ void c2dspradd(ccr2d1 *obj, int x, int y, unsigned pri,
 	obj->spc++;
 }
 
-ccr2d1 *c2dnew(pixel *bck, long unsigned wid, long unsigned hei,
-		unsigned max_spr, unsigned slp, unsigned max_kel)
+ccr2d1 *c2dnew(pixel *bck, ulong wid, ulong hei,
+	uint max_spr, uint slp, uint max_kel)
 {
 	ccr2d1 *obj = malloc(sizeof(ccr2d1));
 	obj->wid = wid;
 	obj->hei = hei;
 	obj->run = 0;
-	obj->wkr = malloc(sizeof(pthread_t) * 4);
+	obj->wkr = malloc(sizeof(thread) * 4);
 	obj->bfr.c = malloc(hei * sizeof(char*));
-	for(long unsigned i = 0; i < hei; i++)
+	for(ulong i = 0; i < hei; i++)
 	{
-		obj->bfr.c[i] = malloc(wid * 10);
+		obj->bfr.c[i] = malloc(wid * 10 * sizeof(int));
 	}
 	obj->bfr.p = malloc(wid * sizeof(pixel*));
-	for(long unsigned i = 0; i < wid; i++)
+	for(ulong i = 0; i < wid; i++)
 	{
 		obj->bfr.p[i] = malloc(hei * sizeof(pixel));
 	}
 	obj->spr = malloc(sizeof(sprite) * max_spr);
 	obj->spc = 0;
-	long unsigned sz = wid * hei * sizeof(pixel);
+	ulong sz = wid * hei * sizeof(pixel);
 	pixel *bck_a = malloc(sz);
 	memcpy(bck_a, bck, sz);
 	obj->bck = bck_a;
@@ -216,26 +232,26 @@ ccr2d1 *c2dnew(pixel *bck, long unsigned wid, long unsigned hei,
 void c2dstart(ccr2d1 *obj)
 {
 	obj->run = 1;
-	pthread_create(&obj->wkr[0], 0, bs2p, obj);
-	pthread_create(&obj->wkr[1], 0, p2c, obj);
-	pthread_create(&obj->wkr[2], 0, c2s, obj);
-	pthread_create(&obj->wkr[3], 0, kc, obj);
+	obj->wkr[0] = thread_create(bs2p, obj);
+	obj->wkr[1] = thread_create(p2c, obj);
+	obj->wkr[2] = thread_create(c2s, obj);
+	obj->wkr[3] = thread_create(kc, obj);
 }
 
 void c2dstop(ccr2d1 *obj)
 {
 	obj->run = 0;
-	pthread_cancel(obj->wkr[0]);
-	pthread_cancel(obj->wkr[1]);
-	pthread_cancel(obj->wkr[2]);
-	pthread_cancel(obj->wkr[3]);
+	thread_cancel(obj->wkr[0]);
+	thread_cancel(obj->wkr[1]);
+	thread_cancel(obj->wkr[2]);
+	thread_cancel(obj->wkr[3]);
 	free(obj->wkr);
-	for(unsigned i = 0; i < obj->hei; i++)
+	for(uint i = 0; i < obj->hei; i++)
 	{
 		free(obj->bfr.c[i]);
 	}
 	free(obj->bfr.c);
-	for(unsigned i = 0; i < obj->wid; i++)
+	for(uint i = 0; i < obj->wid; i++)
 	{
 		free(obj->bfr.p[i]);
 	}
@@ -244,25 +260,71 @@ void c2dstop(ccr2d1 *obj)
 	free(obj);
 }
 
-void pxlarr(long unsigned wid, long unsigned hei, pixel *bfr)
+void pxlarr(ulong len, pixel *bfr)
 {
-	long unsigned i = wid * hei;
-	for(unsigned j = 0; j < i; j++)
+	for(uint j = 0; j < len; j++)
 	{
 		bfr[j].dnsty = D_0;
-		bfr[j].color = C_RESET;
+		bfr[j].color = C_NULL;
 	}
 }
 
-void c2dkeladd(ccr2d1 *obj, void *kel)
+void c2dkeladd(ccr2d1 *obj, kel kel)
 {
 	obj->kel[obj->klc] = kel;
 	obj->klc++;
 }
 
-void sleep_ms(unsigned ms)
+thread thread_create(tstart tstart, void *arg)
 {
-#ifdef _WIN32
+#if WIN
+	return CreateThread(0, 0, tstart, arg, 0, 0);
+#else
+	pthread_t p;
+	pthread_create(&p, 0, tstart, arg);
+	return p;
+#endif
+}
+
+void thread_cancel(thread t)
+{
+#if WIN
+	TerminateThread(t, 0);
+#else
+	pthread_cancel(t);
+#endif
+}
+
+ccr2d1 *setup_thread(void *arg)
+{
+#if !WIN
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, 0);
+#endif
+	return (ccr2d1*)arg;
+}
+
+pixel **pxlarr2dmallocxy(ulong wid, ulong hei)
+{
+	pixel **pxl = malloc(wid * sizeof(pixel*));
+	for (uint i = 0; i < wid; i++)
+	{
+		pxl[i] = malloc(hei);
+	}
+	return pxl;
+}
+
+void pxlarr2dfreexy(pixel **pxl, ulong wid)
+{
+	for (uint i = 0; i < wid; i++)
+	{
+		free(pxl[i]);
+	}
+	free(pxl);
+}
+
+void sleep_ms(uint ms)
+{
+#if WIN
     Sleep(ms);
 #else
     usleep(ms * 1000);
