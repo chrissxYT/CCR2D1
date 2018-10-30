@@ -103,7 +103,7 @@ void *render(void *vargp)
 			}
 			for(long unsigned i = 0; i < j; i++)
 			{
-				obj->bfr.c[i][y] = bfr[i];
+				obj->bfr.c[y][i] = bfr[i];
 			}
 		}
 		sleep_ms(1);
