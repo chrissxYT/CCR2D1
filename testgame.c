@@ -2,15 +2,20 @@
 
 #define wid 20
 #define hei 10
+#define fps 60
 
-//void c2dspradd(ccr2d1 *obj, int x, int y, unsigned pri,
-//                long unsigned wid, long unsigned hei, pixel *pxl);
+ccr2d1 *obj;
+
+void kel(int i)
+{
+	obj->spr[0].pxl[0].dnsty = i;
+}
 
 int main()
 {
 	pixel bck[wid * hei];
 	pxlarr(wid, hei, bck);
-	ccr2d1 *obj = c2dnew(bck, 20, 10, 10);
+	obj = c2dnew(bck, 20, 10, 10, 1000 / fps, 10);
 	c2dstart(obj);
 	pixel spr[9];
 	pxlarr(3, 3, spr);
@@ -19,5 +24,6 @@ int main()
 	spr[4].color = C_GREEN;
 	spr[4].dnsty = D_1;
 	c2dspradd(obj, 2, 2, 1, 3, 3, spr);
-	while(1);
+	c2dkeladd(obj, kel);
+	while(1) sleep_ms(1000000);
 }

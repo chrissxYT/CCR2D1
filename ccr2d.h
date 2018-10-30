@@ -5,7 +5,7 @@
 
 //using const for many string constants
 //because this only allocs once in the binary
-//and not once in every pixel
+//and not once for every pixel
 
 //All the color codes for the pixels
 const char *C_RESET = "\e[0m";
@@ -67,8 +67,10 @@ typedef struct
 //a char[][] the renderer renders into and the drawer displays
 typedef struct
 {
-	//the char array the chars are saved to
+	//the char array the chars are in the end rendered to
 	char **c;
+	//the pixel array the pixels are prerendered into
+	pixel **p;
 } buffer;
 
 //the main object that holds all the information of CCR2D v1
@@ -90,6 +92,12 @@ typedef struct
 	unsigned spc;
 	//the background
 	pixel *bck;
+	//the sleep time between render/draw cycles
+	unsigned slp;
+	//key event listeners
+	void **kel;
+	//key [event] listener count
+	unsigned klc;
 } ccr2d1;
 
 //mallocs a new CCR2D1 object,
@@ -99,7 +107,7 @@ typedef struct
 //mallocs space for max_spr sprites,
 //mallocs bck and copies it
 ccr2d1 *c2dnew(pixel *bck, long unsigned wid, long unsigned hei,
-		unsigned max_spr);
+		unsigned max_spr, unsigned slp, unsigned max_kel);
 
 //starts the 2 worker threads,
 //sets run to true
@@ -116,6 +124,9 @@ void c2dstop(ccr2d1 *obj);
 //adds a new sprite to the obj's spr
 void c2dspradd(ccr2d1 *obj, int x, int y, unsigned pri,
 		long unsigned wid, long unsigned hei, pixel *pxl);
+
+//adds a new key event listener to the obj's kel
+void c2dkeladd(ccr2d1 *obj, void *kel);
 
 //sleeps the thread for the given milliseconds
 void sleep_ms(unsigned ms);
