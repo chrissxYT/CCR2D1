@@ -33,10 +33,10 @@ const char *C_WHITE = "\e[97m";
 //move the cursor to (0;0)
 const char *M_0_0 = "\e[0;0f";
 
-#define D_0 32
-#define D_1 176
-#define D_2 177
-#define D_3 178
+#define D_0 ' '
+#define D_1 '+'
+#define D_2 '#'
+#define D_3 '@'
 
 //a single pixel in an image
 typedef struct

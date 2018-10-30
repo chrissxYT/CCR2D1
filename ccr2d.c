@@ -39,7 +39,8 @@ void quicksort(sprite *spr, unsigned first, unsigned last)
 	}
 }
 
-void *render(void *vargp)
+//background and sprites to chars
+void *bs2c(void *vargp)
 {
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, 0);
 	ccr2d1 *obj = (ccr2d1*)vargp;
@@ -110,7 +111,8 @@ void *render(void *vargp)
 	}
 }
 
-void *draw(void *vargp)
+//chars to screen
+void *c2s(void *vargp)
 {
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, 0);
 	ccr2d1 *obj = (ccr2d1*)vargp;
@@ -128,6 +130,7 @@ void *draw(void *vargp)
 void c2dspradd(ccr2d1 *obj, int x, int y, unsigned pri,
 		long unsigned wid, long unsigned hei, pixel *pxl)
 {
+	//setting the sprite first avoids toc-tou
 	obj->spr[obj->spc].pri = pri;
 	obj->spr[obj->spc].wid = wid;
 	obj->spr[obj->spc].hei = hei;
@@ -162,8 +165,8 @@ ccr2d1 *c2dnew(pixel *bck, long unsigned wid, long unsigned hei,
 void c2dstart(ccr2d1 *obj)
 {
 	obj->run = 1;
-	pthread_create(&obj->wkr[0], 0, render, obj);
-	pthread_create(&obj->wkr[1], 0, draw, obj);
+	pthread_create(&obj->wkr[0], 0, bs2c, obj);
+	pthread_create(&obj->wkr[1], 0, c2s, obj);
 }
 
 void c2dstop(ccr2d1 *obj)
