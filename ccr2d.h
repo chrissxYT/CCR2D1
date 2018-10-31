@@ -29,36 +29,40 @@ typedef void(*kel) (int);
 //and not once for every pixel
 
 //All the color codes for the pixels
-const str C_RESET = "\e[0m";
-const str C_BOLD = "\e[1m";
-const str C_DIM = "\e[2m";
-const str C_BLINK = "\e[5m";
-const str C_HIDDEN = "\e[8m";
-const str C_BLACK = "\e[30m";
-const str C_RED = "\e[31m";
-const str C_GREEN = "\e[32m";
-const str C_YELLOW = "\e[33m";
-const str C_BLUE = "\e[34m";
-const str C_MAGENTA = "\e[35m";
-const str C_CYAN = "\e[36m";
-const str C_LIGHT_GRAY = "\e[37m";
-const str C_DARK_GRAY = "\e[90m";
-const str C_LIGHT_RED = "\e[91m";
-const str C_LIGHT_GREEN = "\e[92m";
-const str C_LIGHT_YELLOW = "\e[93m";
-const str C_LIGHT_BLUE = "\e[94m";
-const str C_LIGHT_MAGENTA = "\e[95m";
-const str C_LIGHT_CYAN = "\e[96m";
-const str C_WHITE = "\e[97m";
-const str C_NULL = "";
+#define C_RESET "\e[0m"
+#define C_BOLD "\e[1m"
+#define C_DIM "\e[2m"
+#define C_BLINK "\e[5m"
+#define C_HIDDEN "\e[8m"
+#define C_BLACK "\e[30m"
+#define C_RED "\e[31m"
+#define C_GREEN "\e[32m"
+#define C_YELLOW "\e[33m"
+#define C_BLUE "\e[34m"
+#define C_MAGENTA "\e[35m"
+#define C_CYAN "\e[36m"
+#define C_LIGHT_GRAY "\e[37m"
+#define C_DARK_GRAY "\e[90m"
+#define C_LIGHT_RED "\e[91m"
+#define C_LIGHT_GREEN "\e[92m"
+#define C_LIGHT_YELLOW "\e[93m"
+#define C_LIGHT_BLUE "\e[94m"
+#define C_LIGHT_MAGENTA "\e[95m"
+#define C_LIGHT_CYAN "\e[96m"
+#define C_WHITE "\e[97m"
+#define C_NULL ""
 
 //move the cursor to (0;0)
-const str M_0_0 = "\e[0;0f";
+#define M_0_0 "\e[0;0f"
 
 #define D_0 ' '
 #define D_1 '+'
 #define D_2 '#'
 #define D_3 '@'
+
+#define ERR_SYSTEM_FAIL 0x00000001
+
+kel error_handler = 0;
 
 //a single pixel in an image
 typedef struct
@@ -148,7 +152,7 @@ void c2dspradd(ccr2d1 *obj, int x, int y, uint pri,
 		ulong wid, ulong hei, pixel *pxl);
 
 //adds a new key event listener to the obj's kel
-void c2dkeladd(ccr2d1 *obj, kel kel);
+void c2dkeladd(ccr2d1 *obj, kel ltr);
 
 //sleeps the thread for the given milliseconds
 void sleep_ms(uint ms);
@@ -156,7 +160,7 @@ void sleep_ms(uint ms);
 //initialize a new pixel array at the buffer
 void pxlarr(ulong len, pixel *bfr);
 
-thread thread_create(tstart tstart, void *arg);
+thread thread_create(tstart func, void *arg);
 
 void thread_cancel(thread t);
 

@@ -55,7 +55,7 @@ bs2p(void *vargp)
 		}
 		uint spc = obj->spc;
 		ulong spc_sizeof_sprite = spc * sizeof(sprite);
-		sprite *spr = malloc(spc);
+		sprite *spr = malloc(spc_sizeof_sprite);
 		memcpy(spr, obj->spr, spc_sizeof_sprite);
 		if(spc != 0)
 			quicksort(spr, 0, spc - 1);
@@ -93,6 +93,16 @@ bs2p(void *vargp)
 	}
 }
 
+uint istrlen(int *i)
+{
+	uint j = 0;
+	while(i[j])
+	{
+		j++;
+	}
+	return j;
+}
+
 //pixels to chars
 #if WIN
 DWORD WINAPI
@@ -107,21 +117,21 @@ p2c(void *vargp)
 		for(ulong y = 0; y < obj->hei; y++)
 		{
 			ulong j = obj->wid * 10;
-			char *bfr = malloc(j);
+			int *bfr = malloc(j * sizeof(int));
 			for(ulong i = 0; i < j; i++)
 			{
 				bfr[i] = 0;
 			}
 			for(ulong x = 0; x < obj->wid; x++)
 			{
-				ulong i = strlen(bfr);
+				ulong i = istrlen(bfr);
 				pixel p = obj->bfr.p[x][y];
 				ulong k = strlen(p.color);
 				for(ulong l = 0; l < k; l++)
 				{
 					bfr[i + l] = p.color[l];
 				}
-				bfr[strlen(bfr)] = p.dnsty;
+				bfr[istrlen(bfr)] = p.dnsty;
 			}
 			for(ulong i = 0; i < j; i++)
 			{
@@ -145,13 +155,15 @@ c2s(void *vargp)
 	while(1)
 	{
 		puts(M_0_0);
+		int k;
 		for(ulong i = 0; i < obj->hei; i++)
 		{
 			int *s = obj->bfr.c[i];
-			for (ulong j = 0; s[j]; j++)
+			for (ulong j = 0; k = s[j]; j++)
 			{
-				putchar(s[j]);
+				putchar(k);
 			}
+			putchar('\n');
 		}
 		sleep_ms(obj->slp);
 	}
@@ -167,7 +179,10 @@ kc(void *vargp)
 {
 	ccr2d1 *obj = setup_thread(vargp);
 #if !WIN
-	system("/bin/stty raw");
+	if(system("/bin/stty raw") == -1)
+	{
+		error_handler(ERR_SYSTEM_FAIL);
+	}
 #endif
 	while(1)
 	{
@@ -269,19 +284,19 @@ void pxlarr(ulong len, pixel *bfr)
 	}
 }
 
-void c2dkeladd(ccr2d1 *obj, kel kel)
+void c2dkeladd(ccr2d1 *obj, kel ltr)
 {
-	obj->kel[obj->klc] = kel;
+	obj->kel[obj->klc] = ltr;
 	obj->klc++;
 }
 
-thread thread_create(tstart tstart, void *arg)
+thread thread_create(tstart func, void *arg)
 {
 #if WIN
-	return CreateThread(0, 0, tstart, arg, 0, 0);
+	return CreateThread(0, 0, func, arg, 0, 0);
 #else
 	pthread_t p;
-	pthread_create(&p, 0, tstart, arg);
+	pthread_create(&p, 0, func, arg);
 	return p;
 #endif
 }
@@ -308,7 +323,7 @@ pixel **pxlarr2dmallocxy(ulong wid, ulong hei)
 	pixel **pxl = malloc(wid * sizeof(pixel*));
 	for (uint i = 0; i < wid; i++)
 	{
-		pxl[i] = malloc(hei);
+		pxl[i] = malloc(hei * sizeof(pixel));
 	}
 	return pxl;
 }
