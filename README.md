@@ -1,5 +1,5 @@
 # CCR2D
-CConsoleRetro2D - C library for NES/GB-like games in the console
+CConsoleRetro2D - A C library for NES/GB-like games in the console
 ## Disclaimer
 This library is not production ready, it's still full of bugs.
 ## Sample code
@@ -8,7 +8,7 @@ This library is not production ready, it's still full of bugs.
 
 int main()
 {
-    //temporaryly allocate the background on the stack 
+    //temporaryly allocate the background on the stack
     pixel bck[70 * 28];
     //initialize the background empty
     pxlarr(70, 28, bck);
@@ -17,6 +17,6 @@ int main()
     //start rendering and drawing
     c2dstart(obj);
     //don't do anything else until the user kills the process
-    while(1);
+    while(1) sleep_ms(1000);
 }
 ```

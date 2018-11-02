@@ -7,14 +7,14 @@
 
 ccr2d1 *obj;
 
-void key(int i)
+void keyh(key k)
 {
-	obj->spr[0].pxl[0].dnsty = i;
+	obj->spr[0].pxl[0].dnsty = k;
 }
 
-void err(int i)
+void err(error e)
 {
-	if(i == ERR_SYSTEM_FAIL)
+	if(e == ERR_SYSTEM_FAIL)
 	{
 		puts("AAAAAHHHHH, WE BROKE SYSTEM");
 	}
@@ -34,6 +34,6 @@ int main()
 	spr[4].color = C_GREEN;
 	spr[4].dnsty = D_1;
 	c2dspradd(obj, 2, 2, 1, 3, 3, spr);
-	c2dkeladd(obj, key);
+	c2dkeladd(obj, keyh);
 	while(1) sleep_ms(1000000);
 }

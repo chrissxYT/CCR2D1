@@ -159,7 +159,7 @@ c2s(void *vargp)
 		for(ulong i = 0; i < obj->hei; i++)
 		{
 			int *s = obj->bfr.c[i];
-			for (ulong j = 0; k = s[j]; j++)
+			for (ulong j = 0; (k = s[j]); j++)
 			{
 				putchar(k);
 			}
@@ -241,6 +241,11 @@ ccr2d1 *c2dnew(pixel *bck, ulong wid, ulong hei,
 	obj->slp = slp;
 	obj->kel = malloc(max_kel * sizeof(void*));
 	obj->klc = 0;
+#if WIN
+	//since Nov 2015 Windows 10 supports ASCII escape codes with this
+	SetConsoleMode(GetConsoleWindow(),
+		ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+#endif
 	return obj;
 }
 

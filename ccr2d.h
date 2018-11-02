@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
 #define WIN 1
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -22,7 +22,10 @@ typedef void *(*tstart) (void *);
 typedef unsigned uint;
 typedef unsigned long ulong;
 typedef char *str;
-typedef void(*kel) (int);
+typedef uint error;
+typedef int key;
+typedef void(*kel) (key);
+typedef void(*errhdl) (error);
 
 //using const for many string constants
 //because this only allocs once in the binary
@@ -62,7 +65,7 @@ typedef void(*kel) (int);
 
 #define ERR_SYSTEM_FAIL 0x00000001
 
-kel error_handler = 0;
+errhdl error_handler = 0;
 
 //a single pixel in an image
 typedef struct
@@ -160,12 +163,19 @@ void sleep_ms(uint ms);
 //initialize a new pixel array at the buffer
 void pxlarr(ulong len, pixel *bfr);
 
+//creates a new thread that runs func with arg and returns it
 thread thread_create(tstart func, void *arg);
 
+//just crashes the given thread t
 void thread_cancel(thread t);
 
+//usually the first function called by a new thread,
+//sets canceltype for the thread if not on windows,
+//casts arg to a ccr2d1 ptr and returns it
 ccr2d1 *setup_thread(void *arg);
 
+//mallocs a new pixel array that's indexed [x][y]
 pixel **pxlarr2dmallocxy(ulong wid, ulong hei);
 
+//frees the given pixel array that's indexed [x][y]
 void pxlarr2dfreexy(pixel **pxl, ulong wid);
