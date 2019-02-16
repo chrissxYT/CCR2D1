@@ -68,8 +68,8 @@ bs2p(void *vargp)
 				{
 					pixel p =
 						s.pxl[j * s.wid + k];
-					//null color ^= transparent
-					if(p.color != 0)
+					//is not transparent
+					if(p.dnsty != D_0)
 					{
 						pxl[(long long)
 							k + s.x][
