@@ -24,12 +24,11 @@ typedef unsigned long ulong;
 typedef char *str;
 typedef uint error;
 typedef int key;
-typedef void(*kel) (key);
-typedef void(*errhdl) (error);
+typedef void(*kel)(key);
+typedef void(*errhdl)(error);
 
-//using const for many string constants
-//because this only allocs once in the binary
-//and not once for every pixel
+//using define for many string constants
+//because const-correctness would be a nightmare
 
 //All the color codes for the pixels
 #define C_RESET "\e[0m"
@@ -63,7 +62,14 @@ typedef void(*errhdl) (error);
 #define D_2 '#'
 #define D_3 '@'
 
+//a system() call failed
 #define ERR_SYSTEM_FAIL 0x00000001
+//a SIGILL was caused
+#define ERR_SIGILL      0x00000002
+//a SIGFPE was caused
+#define ERR_SIGFPE      0x00000003
+//an unknown SIG occured
+#define ERR_ILLSIG      0x00000004
 
 errhdl error_handler = 0;
 
@@ -157,11 +163,17 @@ void c2dspradd(ccr2d1 *obj, int x, int y, uint pri,
 //adds a new key event listener to the obj's kel
 void c2dkeladd(ccr2d1 *obj, kel ltr);
 
-//sleeps the thread for the given milliseconds
+//pauses the thread for the given milliseconds
 void sleep_ms(uint ms);
 
-//initialize a new pixel array at the buffer
-void pxlarr(ulong len, pixel *bfr);
+//a memset for pixel arrays
+void pxlset(pixel *ptr, int dty, ulong num);
+
+//a version of memcpy specifically and only for pixel arrays
+void pxlcpy(pixel *dest, pixel *src, ulong n);
+
+//a version of memcpy specifically and only for sprite arrays
+void sprcpy(sprite *dest, sprite *src, ulong n);
 
 //creates a new thread that runs func with arg and returns it
 thread thread_create(tstart func, void *arg);

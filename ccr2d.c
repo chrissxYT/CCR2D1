@@ -1,4 +1,5 @@
 #include "ccr2d.h"
+#include <signal.h>
 
 void quicksort(sprite *spr, uint first, uint last)
 {
@@ -54,9 +55,8 @@ bs2p(void *vargp)
 			}
 		}
 		uint spc = obj->spc;
-		ulong spc_sizeof_sprite = spc * sizeof(sprite);
-		sprite *spr = malloc(spc_sizeof_sprite);
-		memcpy(spr, obj->spr, spc_sizeof_sprite);
+		sprite *spr = malloc(spc * sizeof(sprite));
+		sprcpy(spr, obj->spr, spc);
 		if(spc != 0)
 			quicksort(spr, 0, spc - 1);
 		for(uint i = 0; i < spc; i++)
@@ -81,12 +81,8 @@ bs2p(void *vargp)
 			}
 		}
 		for(ulong x = 0; x < obj->wid; x++)
-		{
 			for(ulong y = 0; y < obj->hei; y++)
-			{
 				obj->bfr.p[x][y] = pxl[x][y];
-			}
-		}
 		pxlarr2dfreexy(pxl, obj->wid);
 		free(spr);
 		sleep_ms(obj->slp);
@@ -96,10 +92,7 @@ bs2p(void *vargp)
 uint istrlen(int *i)
 {
 	uint j = 0;
-	while(i[j])
-	{
-		j++;
-	}
+	while(i[j]) j++;
 	return j;
 }
 
@@ -118,25 +111,18 @@ p2c(void *vargp)
 		{
 			ulong j = obj->wid * 10;
 			int *bfr = malloc(j * sizeof(int));
-			for(ulong i = 0; i < j; i++)
-			{
-				bfr[i] = 0;
-			}
+			for(ulong i = 0; i < j; i++) bfr[i] = 0;
 			for(ulong x = 0; x < obj->wid; x++)
 			{
 				ulong i = istrlen(bfr);
 				pixel p = obj->bfr.p[x][y];
 				ulong k = strlen(p.color);
 				for(ulong l = 0; l < k; l++)
-				{
 					bfr[i + l] = p.color[l];
-				}
 				bfr[istrlen(bfr)] = p.dnsty;
 			}
 			for(ulong i = 0; i < j; i++)
-			{
 				obj->bfr.c[y][i] = bfr[i];
-			}
 			free(bfr);
 		}
 		sleep_ms(obj->slp);
@@ -159,45 +145,12 @@ c2s(void *vargp)
 		for(ulong i = 0; i < obj->hei; i++)
 		{
 			int *s = obj->bfr.c[i];
-			for (ulong j = 0; (k = s[j]); j++)
-			{
-				putchar(k);
-			}
+			for(ulong j = 0; (k=s[j]); j++) putchar(k);
+			//raw disables the conversion of LF to CRLF
+			putchar('\r');
 			putchar('\n');
 		}
 		sleep_ms(obj->slp);
-	}
-}
-
-//key controller
-#if WIN
-DWORD WINAPI
-#else
-void*
-#endif
-kc(void *vargp)
-{
-	ccr2d1 *obj = setup_thread(vargp);
-#if !WIN
-	if(system("/bin/stty raw") == -1)
-	{
-		error_handler(ERR_SYSTEM_FAIL);
-	}
-#endif
-	while(1)
-	{
-		int i;
-#if WIN
-		i = _getch();
-#else
-		i = getchar();
-#endif
-		if(i < 5)
-			exit(0);
-		for(uint j = 0; j < obj->klc; j++)
-		{
-			obj->kel[j](i);
-		}
 	}
 }
 
@@ -212,6 +165,52 @@ void c2dspradd(ccr2d1 *obj, int x, int y, uint pri,
 	obj->spr[obj->spc].x = x;
 	obj->spr[obj->spc].y = y;
 	obj->spc++;
+}
+
+//interrupt handler
+void int_hdl(int i)
+{
+	if(i == SIGINT || i == SIGABRT || i == SIGTERM)
+	{
+#if !WIN
+		if(system("stty cooked") == -1)
+		{
+			error_handler(ERR_SYSTEM_FAIL);
+		}
+#endif
+		exit(0);
+	}
+	else if(i == SIGFPE) error_handler(ERR_SIGFPE);
+	else if(i == SIGILL) error_handler(ERR_SIGILL);
+	else error_handler(ERR_ILLSIG);
+}
+
+//key controller
+#if WIN
+DWORD WINAPI
+#else
+void*
+#endif
+kc(void *vargp)
+{
+	ccr2d1 *obj = setup_thread(vargp);
+	while(1)
+	{
+		int i =
+#if WIN
+		_getch();
+#else
+		getchar();
+#endif
+		if(i == 3) int_hdl(SIGINT);
+		else
+		{
+			for(uint j = 0; j < obj->klc; j++)
+			{
+				obj->kel[j](i);
+			}
+		}
+	}
 }
 
 ccr2d1 *c2dnew(pixel *bck, ulong wid, ulong hei,
@@ -234,9 +233,9 @@ ccr2d1 *c2dnew(pixel *bck, ulong wid, ulong hei,
 	}
 	obj->spr = malloc(sizeof(sprite) * max_spr);
 	obj->spc = 0;
-	ulong sz = wid * hei * sizeof(pixel);
-	pixel *bck_a = malloc(sz);
-	memcpy(bck_a, bck, sz);
+	ulong sz = wid * hei;
+	pixel *bck_a = malloc(sz * sizeof(pixel));
+	pxlcpy(bck_a, bck, sz);
 	obj->bck = bck_a;
 	obj->slp = slp;
 	obj->kel = malloc(max_kel * sizeof(void*));
@@ -251,6 +250,22 @@ ccr2d1 *c2dnew(pixel *bck, ulong wid, ulong hei,
 
 void c2dstart(ccr2d1 *obj)
 {
+	signal(SIGABRT, int_hdl);
+	signal(SIGFPE, int_hdl);
+	signal(SIGILL, int_hdl);
+	signal(SIGINT, int_hdl);
+	//asan does this
+	//signal(SIGSEGV, int_hdl);
+	signal(SIGTERM, int_hdl);
+	//this should clear but it doesnt
+	//putc('\x0c', stdin);
+	system("clear");
+#if !WIN
+	if(system("stty raw") == -1)
+	{
+		error_handler(ERR_SYSTEM_FAIL);
+	}
+#endif
 	obj->run = 1;
 	obj->wkr[0] = thread_create(bs2p, obj);
 	obj->wkr[1] = thread_create(p2c, obj);
@@ -280,13 +295,36 @@ void c2dstop(ccr2d1 *obj)
 	free(obj);
 }
 
-void pxlarr(ulong len, pixel *bfr)
+void pxlset(pixel *ptr, int dty, ulong num)
 {
-	for(uint j = 0; j < len; j++)
+	for(ulong j = 0; j < num; j++)
 	{
-		bfr[j].dnsty = D_0;
-		bfr[j].color = C_NULL;
+		ptr[j].dnsty = dty;
+		ptr[j].color = C_NULL;
 	}
+}
+
+void pxlcpy(pixel *dest, pixel *src, ulong n)
+{
+	for(ulong i = 0; i < n; i++)
+	{
+		dest[i] = src[i];
+	}
+}
+
+//void pxlarr(ulong len, pixel *bfr)
+//{
+//	for(ulong j = 0; j < len; j++)
+//	{
+//		bfr[j].dnsty = D_0;
+//		bfr[j].color = C_NULL;
+//	}
+//}
+
+void sprcpy(sprite *dest, sprite *src, ulong n)
+{
+	for(ulong i = 0; i < n; i++)
+		dest[i] = src[i];
 }
 
 void c2dkeladd(ccr2d1 *obj, kel ltr)
