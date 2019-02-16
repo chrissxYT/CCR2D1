@@ -1,0 +1,24 @@
+CCR2D1Picture
+=============
+A format for encoding pictures for use in CCR2D1.
+
+Header
+------
+{'C', 'C', 'R', '2', 'D', '1', 'P', '\x01'}
+
+Properties
+----------
+{width << 56, width << 48, width << 40, width << 32, width << 24,
+ width << 16, width <<  8, width      , height<< 56, height<< 48,
+height << 40, height<< 32, height<< 24, height<< 16, height<<  8,
+height}
+
+Pixels
+------
+for each pixel
+	{dnsty, color.length, color as ascii}
+
+
+CCR2D1CompressedPicture
+=======================
+A wrapper around CCR2D1P to compress it, it is just a GZIP around it.
