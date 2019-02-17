@@ -222,13 +222,7 @@ kc(void *vargp)
 		getchar();
 #endif
 		if(i == 3) int_hdl(SIGINT);
-		else
-		{
-			for(uint j = 0; j < obj->klc; j++)
-			{
-				obj->kel[j](i);
-			}
-		}
+		else for(uint j = 0; j<obj->klc; j++) obj->kel[j](i);
 	}
 }
 
@@ -323,12 +317,8 @@ void pxlset(pixel *ptr, int dty, ulong num)
 	}
 }
 
-void pxlcpy(pixel *dest, pixel *src, ulong n)
-{
-	for(ulong i = 0; i < n; i++)
-	{
-		dest[i] = src[i];
-	}
+void pxlcpy(pixel *dest, pixel *src, ulong n) {
+	for(ulong i = 0; i < n; i++) dest[i] = src[i];
 }
 
 //void pxlarr(ulong len, pixel *bfr)
@@ -340,16 +330,37 @@ void pxlcpy(pixel *dest, pixel *src, ulong n)
 //	}
 //}
 
-void sprcpy(sprite *dest, sprite *src, ulong n)
-{
-	for(ulong i = 0; i < n; i++)
-		dest[i] = src[i];
+void sprcpy(sprite *dest, sprite *src, ulong n) {
+	for(ulong i = 0; i < n; i++) dest[i] = src[i];
 }
 
 void c2dkeladd(ccr2d1 *obj, kel ltr)
 {
 	obj->kel[obj->klc] = ltr;
 	obj->klc++;
+}
+
+void c2dldp(FILE *stream, pixel *buffer, ulong *width, ulong *height)
+{
+	char hcorrect[8] = {'C', 'C', 'R', '2', 'D', '1', 'P', '\x01'};
+	char hcheck[8];
+	fread(hcheck, 1, 8, stream);
+	if(strncmp(hcorrect, hcheck, 8))
+		error_handler(ERR_INCORRECT_HEADER);
+	char rwid[4];
+	fread(rwid, 1, 4, stream);
+	*width = SHIFTIN(rwid);
+	char rhei[4];
+	fread(rhei, 1, 4, stream);
+	*height = SHIFTIN(rhei);
+	ulong pc = *width * *height;
+	for(ulong i = 0; i < pc; i++)
+	{
+		buffer[i].dnsty = fgetc(stream);
+		char cl = fgetc(stream);
+		buffer[i].color = malloc(cl);
+		fread(buffer[i].color, 1, cl, stream);
+	}
 }
 
 thread thread_create(tstart func, void *arg)

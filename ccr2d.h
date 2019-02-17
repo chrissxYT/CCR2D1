@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(_WIN32) || defined(_WIN64)
+#if (defined(_WIN32) || defined(_WIN64)) && !defined(__CYGWIN__)
 #define WIN 1
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -26,6 +26,8 @@ typedef uint error;
 typedef int key;
 typedef void(*kel)(key);
 typedef void(*errhdl)(error);
+
+#define SHIFTIN(x) (x[0] >> 24 | x[1] >> 16 | x[2] >> 8 | x[3])
 
 //using define for many string constants
 //because const-correctness would be a nightmare
@@ -63,13 +65,15 @@ typedef void(*errhdl)(error);
 #define D_3 '@'
 
 //a system() call failed
-#define ERR_SYSTEM_FAIL 0x00000001
+#define ERR_SYSTEM_FAIL      0x00000001
 //a SIGILL was caused
-#define ERR_SIGILL      0x00000002
+#define ERR_SIGILL           0x00000002
 //a SIGFPE was caused
-#define ERR_SIGFPE      0x00000003
+#define ERR_SIGFPE           0x00000003
 //an unknown SIG occured
-#define ERR_ILLSIG      0x00000004
+#define ERR_ILLSIG           0x00000004
+//a header is not what it should be (usually CCR2D1P)
+#define ERR_INCORRECT_HEADER 0x00000005
 
 errhdl error_handler = 0;
 
@@ -193,3 +197,7 @@ pixel **pxlarr2dmallocxy(ulong wid, ulong hei);
 
 //frees the given pixel array that's indexed [x][y]
 void pxlarr2dfreexy(pixel **pxl, ulong wid);
+
+//load picture - reads a CCR2D1P from stream into buffer and sets
+//*width to the width and *height to the height
+void c2dldp(FILE *stream, pixel *buffer, ulong *width, ulong *height);
