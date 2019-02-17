@@ -110,46 +110,65 @@ p2c(void *vargp)
 		for(ulong y = 0; y < obj->hei; y++)
 		{
 			ulong j = obj->wid * 10;
-			int *bfr = malloc(j * sizeof(int));
-			for(ulong i = 0; i < j; i++) bfr[i] = 0;
+			char *bfr = malloc(j);
+			memset(bfr, 0, j);
 			for(ulong x = 0; x < obj->wid; x++)
 			{
-				ulong i = istrlen(bfr);
+				ulong i = strlen(bfr);
 				pixel p = obj->bfr.p[x][y];
-				ulong k = strlen(p.color);
-				for(ulong l = 0; l < k; l++)
-					bfr[i + l] = p.color[l];
-				bfr[istrlen(bfr)] = p.dnsty;
+				memcpy(bfr + i, p.color, strlen(p.color));
+				bfr[strlen(bfr)] = p.dnsty;
 			}
-			for(ulong i = 0; i < j; i++)
-				obj->bfr.c[y][i] = bfr[i];
+			memcpy(obj->bfr.c[y], bfr, j);
 			free(bfr);
 		}
 		sleep_ms(obj->slp);
 	}
 }
 
-//chars to screen
+//chars to linear ints
 #if WIN
 DWORD WINAPI
 #else
 void*
 #endif
-c2s(void *vargp)
+c2li(void *vargp)
 {
 	ccr2d1 *obj = setup_thread(vargp);
 	while(1)
 	{
-		puts(M_0_0);
-		int k;
-		for(ulong i = 0; i < obj->hei; i++)
+		ulong j = 0;
+		int *i = obj->bfr.i;
+		char **c = obj->bfr.c;
+		for(ulong y = 0; y < obj->hei; y++)
 		{
-			int *s = obj->bfr.c[i];
-			for(ulong j = 0; (k=s[j]); j++) putchar(k);
-			//raw disables the conversion of LF to CRLF
-			putchar('\r');
-			putchar('\n');
+			for(ulong x = 0; x < obj->wid; x++)
+				i[j++] = c[y][x];
+			i[j++] = '\r';
+			i[j++] = '\n';
 		}
+		i[j] = '\0';
+		sleep_ms(obj->slp);
+	}
+}
+
+//linear ints to screen
+#if WIN
+DWORD WINAPI
+#else
+void*
+#endif
+li2s(void *vargp)
+{
+	ccr2d1 *obj = setup_thread(vargp);
+	while(1)
+	{
+		//the format string M_0_0 is in our hands, so not
+		//using %s is ok
+		printf(M_0_0);
+		int *i = obj->bfr.i;
+		ulong j = 0;
+		while(i[j]) putc(i[j++], stdout);
 		sleep_ms(obj->slp);
 	}
 }
@@ -220,23 +239,22 @@ ccr2d1 *c2dnew(pixel *bck, ulong wid, ulong hei,
 	obj->wid = wid;
 	obj->hei = hei;
 	obj->run = 0;
-	obj->wkr = malloc(sizeof(thread) * 4);
 	obj->bfr.c = malloc(hei * sizeof(char*));
 	for(ulong i = 0; i < hei; i++)
 	{
-		obj->bfr.c[i] = malloc(wid * 10 * sizeof(int));
+		obj->bfr.c[i] = malloc(wid * 10);
 	}
 	obj->bfr.p = malloc(wid * sizeof(pixel*));
 	for(ulong i = 0; i < wid; i++)
 	{
 		obj->bfr.p[i] = malloc(hei * sizeof(pixel));
 	}
+	obj->bfr.i = malloc(wid * hei * 10 * sizeof(int) + hei * 2);
 	obj->spr = malloc(sizeof(sprite) * max_spr);
 	obj->spc = 0;
 	ulong sz = wid * hei;
-	pixel *bck_a = malloc(sz * sizeof(pixel));
-	pxlcpy(bck_a, bck, sz);
-	obj->bck = bck_a;
+	obj->bck = malloc(sz * sizeof(pixel));
+	pxlcpy(obj->bck, bck, sz);
 	obj->slp = slp;
 	obj->kel = malloc(max_kel * sizeof(void*));
 	obj->klc = 0;
@@ -269,8 +287,9 @@ void c2dstart(ccr2d1 *obj)
 	obj->run = 1;
 	obj->wkr[0] = thread_create(bs2p, obj);
 	obj->wkr[1] = thread_create(p2c, obj);
-	obj->wkr[2] = thread_create(c2s, obj);
-	obj->wkr[3] = thread_create(kc, obj);
+	obj->wkr[2] = thread_create(c2li, obj);
+	obj->wkr[3] = thread_create(li2s, obj);
+	obj->wkr[4] = thread_create(kc, obj);
 }
 
 void c2dstop(ccr2d1 *obj)

@@ -102,10 +102,12 @@ typedef struct
 //a few rendering and drawing buffers mashed into one struct
 typedef struct
 {
-	//the char array the chars are in the end rendered to
-	int **c;
-	//the pixel array the pixels are prerendered into
+	//the pixel array the pixels are rendered into in phase 1
 	pixel **p;
+	//the char array the chars are rendered into in phase 2
+	char **c;
+	//the int array the finished chars are aligned into in phase 3
+	int *i;
 } buffer;
 
 //the main object that holds all the information of CCR2D v1
@@ -115,8 +117,8 @@ typedef struct
 	buffer bfr;
 	//0 if not running
 	int run;
-	//an array of pthreads: the workers rendering, drawing, etc.
-	thread *wkr;
+	//the workers for rendering, drawing, etc.
+	thread wkr[5];
 	//the render width
 	ulong wid;
 	//the render height

@@ -9,7 +9,7 @@ ccr2d1 *obj;
 
 void keyh(key k)
 {
-	obj->spr[0].pxl[0].dnsty = k;
+	obj->spr[0].pxl[0].dnsty++;
 }
 
 void err(error e)
