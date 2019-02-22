@@ -11,12 +11,20 @@
 #include <conio.h>
 typedef HANDLE thread;
 typedef LPTHREAD_START_ROUTINE tstart;
+#ifdef CCR2D1_DLL
+#define CCR2D1_API __declspec(dllexport)
+#else
+#define CCR2D1_API __declspec(dllimport)
+#endif
+#define TFUNC DWORD WINAPI
 #else
 #define WIN 0
 #include <unistd.h>
 #include <pthread.h>
 typedef pthread_t thread;
 typedef void *(*tstart) (void *);
+#define CCR2D1_API
+#define TFUNC void *
 #endif
 
 typedef unsigned uint;
@@ -147,12 +155,12 @@ typedef struct
 //mallocs a wid * hei buffer,
 //mallocs space for max_spr sprites,
 //mallocs bck and copies it
-ccr2d1 *c2dnew(pixel *bck, ulong wid, ulong hei,
+CCR2D1_API ccr2d1 *c2dnew(pixel *bck, ulong wid, ulong hei,
 		uint max_spr, uint slp, uint max_kel);
 
 //starts the 2 worker threads,
 //sets run to true
-void c2dstart(ccr2d1 *obj);
+CCR2D1_API void c2dstart(ccr2d1 *obj);
 
 //a combination of a stop and a delete
 //sets run to false,
@@ -160,44 +168,44 @@ void c2dstart(ccr2d1 *obj);
 //frees the space for the 2 workers,
 //frees the whole buffer,
 //frees the CCR2D1 object
-void c2dstop(ccr2d1 *obj);
+CCR2D1_API void c2dstop(ccr2d1 *obj);
 
 //adds a new sprite to the obj's spr
-void c2dspradd(ccr2d1 *obj, int x, int y, uint pri,
+CCR2D1_API void c2dspradd(ccr2d1 *obj, int x, int y, uint pri,
 		ulong wid, ulong hei, pixel *pxl);
 
 //adds a new key event listener to the obj's kel
-void c2dkeladd(ccr2d1 *obj, kel ltr);
+CCR2D1_API void c2dkeladd(ccr2d1 *obj, kel ltr);
 
 //pauses the thread for the given milliseconds
-void sleep_ms(uint ms);
+CCR2D1_API void sleep_ms(uint ms);
 
 //a memset for pixel arrays
-void pxlset(pixel *ptr, int dty, ulong num);
+CCR2D1_API void pxlset(pixel *ptr, int dty, ulong num);
 
 //a version of memcpy specifically and only for pixel arrays
-void pxlcpy(pixel *dest, pixel *src, ulong n);
+CCR2D1_API void pxlcpy(pixel *dest, pixel *src, ulong n);
 
 //a version of memcpy specifically and only for sprite arrays
-void sprcpy(sprite *dest, sprite *src, ulong n);
+CCR2D1_API void sprcpy(sprite *dest, sprite *src, ulong n);
 
 //creates a new thread that runs func with arg and returns it
-thread thread_create(tstart func, void *arg);
+CCR2D1_API thread thread_create(tstart func, void *arg);
 
 //just crashes the given thread t
-void thread_cancel(thread t);
+CCR2D1_API void thread_cancel(thread t);
 
 //usually the first function called by a new thread,
 //sets canceltype for the thread if not on windows,
 //casts arg to a ccr2d1 ptr and returns it
-ccr2d1 *setup_thread(void *arg);
+CCR2D1_API ccr2d1 *setup_thread(void *arg);
 
 //mallocs a new pixel array that's indexed [x][y]
-pixel **pxlarr2dmallocxy(ulong wid, ulong hei);
+CCR2D1_API pixel **pxlarr2dmallocxy(ulong wid, ulong hei);
 
 //frees the given pixel array that's indexed [x][y]
-void pxlarr2dfreexy(pixel **pxl, ulong wid);
+CCR2D1_API void pxlarr2dfreexy(pixel **pxl, ulong wid);
 
 //load picture - reads a CCR2D1P from stream into buffer and sets
 //*width to the width and *height to the height
-void c2dldp(FILE *stream, pixel *buffer, ulong *width, ulong *height);
+CCR2D1_API void c2dldp(FILE *stream, pixel *buffer, ulong *width, ulong *height);

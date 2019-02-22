@@ -35,12 +35,7 @@ void quicksort(sprite *spr, uint first, uint last)
 }
 
 //background and sprites to pixels
-#if WIN
-DWORD WINAPI
-#else
-void*
-#endif
-bs2p(void *vargp)
+TFUNC bs2p(void *vargp)
 {
 	ccr2d1 *obj = setup_thread(vargp);
 	while (1)
@@ -89,20 +84,15 @@ bs2p(void *vargp)
 	}
 }
 
-uint istrlen(int *i)
-{
-	uint j = 0;
-	while(i[j]) j++;
-	return j;
-}
+//uint istrlen(int *i)
+//{
+//	uint j = 0;
+//	while(i[j]) j++;
+//	return j;
+//}
 
 //pixels to chars
-#if WIN
-DWORD WINAPI
-#else
-void*
-#endif
-p2c(void *vargp)
+TFUNC p2c(void *vargp)
 {
 	ccr2d1 *obj = setup_thread(vargp);
 	while(1)
@@ -127,12 +117,7 @@ p2c(void *vargp)
 }
 
 //chars to linear ints
-#if WIN
-DWORD WINAPI
-#else
-void*
-#endif
-c2li(void *vargp)
+TFUNC c2li(void *vargp)
 {
 	ccr2d1 *obj = setup_thread(vargp);
 	while(1)
@@ -153,12 +138,7 @@ c2li(void *vargp)
 }
 
 //linear ints to screen
-#if WIN
-DWORD WINAPI
-#else
-void*
-#endif
-li2s(void *vargp)
+TFUNC li2s(void *vargp)
 {
 	ccr2d1 *obj = setup_thread(vargp);
 	while(1)
@@ -173,7 +153,7 @@ li2s(void *vargp)
 	}
 }
 
-void c2dspradd(ccr2d1 *obj, int x, int y, uint pri,
+CCR2D1_API void c2dspradd(ccr2d1 *obj, int x, int y, uint pri,
 	ulong wid, ulong hei, pixel *pxl)
 {
 	//setting the sprite first avoids toc-tou
@@ -205,12 +185,7 @@ void int_hdl(int i)
 }
 
 //key controller
-#if WIN
-DWORD WINAPI
-#else
-void*
-#endif
-kc(void *vargp)
+TFUNC kc(void *vargp)
 {
 	ccr2d1 *obj = setup_thread(vargp);
 	while(1)
@@ -226,7 +201,7 @@ kc(void *vargp)
 	}
 }
 
-ccr2d1 *c2dnew(pixel *bck, ulong wid, ulong hei,
+CCR2D1_API ccr2d1 *c2dnew(pixel *bck, ulong wid, ulong hei,
 	uint max_spr, uint slp, uint max_kel)
 {
 	ccr2d1 *obj = malloc(sizeof(ccr2d1));
@@ -260,7 +235,7 @@ ccr2d1 *c2dnew(pixel *bck, ulong wid, ulong hei,
 	return obj;
 }
 
-void c2dstart(ccr2d1 *obj)
+CCR2D1_API void c2dstart(ccr2d1 *obj)
 {
 	signal(SIGABRT, int_hdl);
 	signal(SIGFPE, int_hdl);
@@ -286,7 +261,7 @@ void c2dstart(ccr2d1 *obj)
 	obj->wkr[4] = thread_create(kc, obj);
 }
 
-void c2dstop(ccr2d1 *obj)
+CCR2D1_API void c2dstop(ccr2d1 *obj)
 {
 	obj->run = 0;
 	thread_cancel(obj->wkr[0]);
@@ -308,7 +283,7 @@ void c2dstop(ccr2d1 *obj)
 	free(obj);
 }
 
-void pxlset(pixel *ptr, int dty, ulong num)
+CCR2D1_API void pxlset(pixel *ptr, int dty, ulong num)
 {
 	for(ulong j = 0; j < num; j++)
 	{
@@ -317,7 +292,7 @@ void pxlset(pixel *ptr, int dty, ulong num)
 	}
 }
 
-void pxlcpy(pixel *dest, pixel *src, ulong n) {
+CCR2D1_API void pxlcpy(pixel *dest, pixel *src, ulong n) {
 	for(ulong i = 0; i < n; i++) dest[i] = src[i];
 }
 
@@ -330,17 +305,17 @@ void pxlcpy(pixel *dest, pixel *src, ulong n) {
 //	}
 //}
 
-void sprcpy(sprite *dest, sprite *src, ulong n) {
+CCR2D1_API void sprcpy(sprite *dest, sprite *src, ulong n) {
 	for(ulong i = 0; i < n; i++) dest[i] = src[i];
 }
 
-void c2dkeladd(ccr2d1 *obj, kel ltr)
+CCR2D1_API void c2dkeladd(ccr2d1 *obj, kel ltr)
 {
 	obj->kel[obj->klc] = ltr;
 	obj->klc++;
 }
 
-void c2dldp(FILE *stream, pixel *buffer, ulong *width, ulong *height)
+CCR2D1_API void c2dldp(FILE *stream, pixel *buffer, ulong *width, ulong *height)
 {
 	char hcorrect[8] = {'C', 'C', 'R', '2', 'D', '1', 'P', '\x01'};
 	char hcheck[8];
@@ -363,7 +338,7 @@ void c2dldp(FILE *stream, pixel *buffer, ulong *width, ulong *height)
 	}
 }
 
-thread thread_create(tstart func, void *arg)
+CCR2D1_API thread thread_create(tstart func, void *arg)
 {
 #if WIN
 	return CreateThread(0, 0, func, arg, 0, 0);
@@ -374,7 +349,7 @@ thread thread_create(tstart func, void *arg)
 #endif
 }
 
-void thread_cancel(thread t)
+CCR2D1_API void thread_cancel(thread t)
 {
 #if WIN
 	TerminateThread(t, 0);
@@ -383,7 +358,7 @@ void thread_cancel(thread t)
 #endif
 }
 
-ccr2d1 *setup_thread(void *arg)
+CCR2D1_API ccr2d1 *setup_thread(void *arg)
 {
 #if !WIN
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, 0);
@@ -391,7 +366,7 @@ ccr2d1 *setup_thread(void *arg)
 	return (ccr2d1*)arg;
 }
 
-pixel **pxlarr2dmallocxy(ulong wid, ulong hei)
+CCR2D1_API pixel **pxlarr2dmallocxy(ulong wid, ulong hei)
 {
 	pixel **pxl = malloc(wid * sizeof(pixel*));
 	for (uint i = 0; i < wid; i++)
@@ -401,7 +376,7 @@ pixel **pxlarr2dmallocxy(ulong wid, ulong hei)
 	return pxl;
 }
 
-void pxlarr2dfreexy(pixel **pxl, ulong wid)
+CCR2D1_API void pxlarr2dfreexy(pixel **pxl, ulong wid)
 {
 	for (uint i = 0; i < wid; i++)
 	{
@@ -410,7 +385,7 @@ void pxlarr2dfreexy(pixel **pxl, ulong wid)
 	free(pxl);
 }
 
-void sleep_ms(uint ms)
+CCR2D1_API void sleep_ms(uint ms)
 {
 #if WIN
     Sleep(ms);
