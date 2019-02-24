@@ -268,7 +268,6 @@ CCR2D1_API void c2dstop(ccr2d1 *obj)
 	thread_cancel(obj->wkr[1]);
 	thread_cancel(obj->wkr[2]);
 	thread_cancel(obj->wkr[3]);
-	free(obj->wkr);
 	for(uint i = 0; i < obj->hei; i++)
 	{
 		free(obj->bfr.c[i]);
