@@ -280,6 +280,12 @@ CCR2D1_API void c2dstop(ccr2d1 *obj)
 	free(obj->bfr.p);
 	free(obj->kel);
 	free(obj);
+#if !WIN
+	if(system("stty cooked") == -1)
+	{
+		error_handler(ERR_SYSTEM_FAIL);
+	}
+#endif
 }
 
 CCR2D1_API void pxlset(pixel *ptr, int dty, ulong num)
