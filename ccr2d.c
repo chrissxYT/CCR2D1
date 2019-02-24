@@ -104,7 +104,7 @@ TFUNC p2c(void *vargp)
 			memset(bfr, 0, j);
 			for(ulong x = 0; x < obj->wid; x++)
 			{
-				ulong i = strlen(bfr);
+				size_t i = strlen(bfr);
 				pixel p = obj->bfr.p[x][y];
 				memcpy(bfr + i, p.color, strlen(p.color));
 				bfr[strlen(bfr)] = p.dnsty;
@@ -143,9 +143,14 @@ TFUNC li2s(void *vargp)
 	ccr2d1 *obj = setup_thread(vargp);
 	while(1)
 	{
-		//the format string M_0_0 is in our hands, so not
-		//using %s is ok
-		printf(M_0_0);
+#if WIN
+		COORD c;
+		c.X = c.Y = 0;
+		SetConsoleCursorPosition(GetConsoleWindow(), c);
+#else
+		char *c = M_0_0;
+		while (*c) putc(*c, stdout), c++;
+#endif
 		int *i = obj->bfr.i;
 		ulong j = 0;
 		while(i[j]) putc(i[j++], stdout);
@@ -153,7 +158,7 @@ TFUNC li2s(void *vargp)
 	}
 }
 
-CCR2D1_API void c2dspradd(ccr2d1 *obj, int x, int y, uint pri,
+CCR2D1_API uint c2dspradd(ccr2d1 *obj, int x, int y, uint pri,
 	ulong wid, ulong hei, pixel *pxl)
 {
 	//setting the sprite first avoids toc-tou
@@ -164,6 +169,20 @@ CCR2D1_API void c2dspradd(ccr2d1 *obj, int x, int y, uint pri,
 	obj->spr[obj->spc].x = x;
 	obj->spr[obj->spc].y = y;
 	obj->spc++;
+	return obj->spc - 1;
+}
+
+CCR2D1_API void c2dsprmvr(ccr2d1 *obj, uint sid, uint x, uint y)
+{
+	c2dsprmva(obj, sid,
+		(obj->spr[sid].x + x) % obj->wid,
+		(obj->spr[sid].y + y) % obj->hei);
+}
+
+CCR2D1_API void c2dsprmva(ccr2d1 *obj, uint sid, uint x, uint y)
+{
+	obj->spr[sid].x = x;
+	obj->spr[sid].y = y;
 }
 
 //interrupt handler
@@ -337,7 +356,7 @@ CCR2D1_API void c2dldp(FILE *stream, pixel *buffer, ulong *width, ulong *height)
 	for(ulong i = 0; i < pc; i++)
 	{
 		buffer[i].dnsty = fgetc(stream);
-		char cl = fgetc(stream);
+		int cl = fgetc(stream);
 		buffer[i].color = malloc(cl);
 		fread(buffer[i].color, 1, cl, stream);
 	}

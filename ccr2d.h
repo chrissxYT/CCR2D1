@@ -64,8 +64,10 @@ typedef void(*errhdl)(error);
 #define C_WHITE "\e[97m"
 #define C_NULL ""
 
+#if !WIN
 //move the cursor to (0;0)
 #define M_0_0 "\e[0;0f"
+#endif
 
 #define D_0 ' '
 #define D_1 '+'
@@ -171,8 +173,15 @@ CCR2D1_API void c2dstart(ccr2d1 *obj);
 CCR2D1_API void c2dstop(ccr2d1 *obj);
 
 //adds a new sprite to the obj's spr
-CCR2D1_API void c2dspradd(ccr2d1 *obj, int x, int y, uint pri,
+//returns its id
+CCR2D1_API uint c2dspradd(ccr2d1 *obj, int x, int y, uint pri,
 		ulong wid, ulong hei, pixel *pxl);
+
+//moves the sprite with the given id relative to its current position
+CCR2D1_API void c2dsprmvr(ccr2d1 *obj, uint sid, uint x, uint y);
+
+//moves the sprite with the given id to the given absolute position
+CCR2D1_API void c2dsprmva(ccr2d1 *obj, uint sid, uint x, uint y);
 
 //adds a new key event listener to the obj's kel
 CCR2D1_API void c2dkeladd(ccr2d1 *obj, kel ltr);
