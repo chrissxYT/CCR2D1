@@ -106,9 +106,9 @@ typedef struct
 	//height in console pixels
 	ulong hei;
 	//x position
-	int x;
+	uint x;
 	//y position
-	int y;
+	uint y;
 	//array of pixels / the actual image, null means invalid
 	pixel *pxl;
 } sprite;
@@ -174,7 +174,7 @@ CCR2D1_API void c2dstop(ccr2d1 *obj);
 
 //adds a new sprite to the obj's spr
 //returns its id
-CCR2D1_API uint c2dspradd(ccr2d1 *obj, int x, int y, uint pri,
+CCR2D1_API uint c2dspradd(ccr2d1 *obj, uint x, uint y, uint pri,
 		ulong wid, ulong hei, pixel *pxl);
 
 //moves the sprite with the given id relative to its current position

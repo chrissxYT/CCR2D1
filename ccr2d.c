@@ -158,7 +158,7 @@ TFUNC li2s(void *vargp)
 	}
 }
 
-CCR2D1_API uint c2dspradd(ccr2d1 *obj, int x, int y, uint pri,
+CCR2D1_API uint c2dspradd(ccr2d1 *obj, uint x, uint y, uint pri,
 	ulong wid, ulong hei, pixel *pxl)
 {
 	//setting the sprite first avoids toc-tou
@@ -174,9 +174,11 @@ CCR2D1_API uint c2dspradd(ccr2d1 *obj, int x, int y, uint pri,
 
 CCR2D1_API void c2dsprmvr(ccr2d1 *obj, uint sid, uint x, uint y)
 {
+	uint xx = obj->spr[sid].x + x;
+	uint yy = obj->spr[sid].y + y;
 	c2dsprmva(obj, sid,
-		(obj->spr[sid].x + x) % obj->wid,
-		(obj->spr[sid].y + y) % obj->hei);
+		xx < obj->wid ? xx : obj->wid - 1,
+		yy < obj->hei ? yy : obj->hei - 1);
 }
 
 CCR2D1_API void c2dsprmva(ccr2d1 *obj, uint sid, uint x, uint y)
