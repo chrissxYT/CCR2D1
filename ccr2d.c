@@ -177,14 +177,45 @@ CCR2D1_API void c2dsprmvr(ccr2d1 *obj, uint sid, uint x, uint y)
 	uint xx = obj->spr[sid].x + x;
 	uint yy = obj->spr[sid].y + y;
 	c2dsprmva(obj, sid,
-		xx < obj->wid ? xx : obj->wid - 1,
-		yy < obj->hei ? yy : obj->hei - 1);
+		xx + obj->spr[sid].wid < obj->wid ? xx : obj->wid - 1,
+		yy + obj->spr[sid].hei < obj->hei ? yy : obj->hei - 1);
 }
 
 CCR2D1_API void c2dsprmva(ccr2d1 *obj, uint sid, uint x, uint y)
 {
 	obj->spr[sid].x = x;
 	obj->spr[sid].y = y;
+}
+
+CCR2D1_API bool c2dchkcol(ccr2d1 *obj, uint sid1, uint sid2)
+{
+	sprite s1 = obj->spr[sid1];
+	sprite s2 = obj->spr[sid2];
+	uint x1 = s1.x;
+	uint y1 = s1.y;
+	uint x2 = s2.x;
+	uint y2 = s2.y;
+	uint x1w = x1 + s1.wid;
+	uint y1h = y1 + s1.hei;
+	uint x2w = x2 + s2.wid;
+	uint y2h = y2 + s2.hei;
+	bool x1c  = x1  >= x2 && x1  < x2w;
+	bool y1c  = y1  >= y2 && y1  < y2h;
+	bool x1wc = x1w >= x2 && x1w < x2w;
+	bool y1hc = y1h >= y2 && y1h < y2h;
+	bool x2c  = x2 >= x1 && x2 < x1w;
+	bool y2c  = y2 >= y1 && y2 < y1h;
+	bool x2wc = x2w >= x1 && x2w < x1w;
+	bool y2hc = y2h >= y1 && y2h < y1h;
+	bool s1c = (x1c  && y1c)  || //upper left
+			   (x1wc && y1c)  || //upper right
+			   (x1c  && y1hc) || //lower left
+			   (x1wc && y1hc);   //lower right
+	bool s2c = (x2c  && y2c)  || //upper left
+			   (x2wc && y2c)  || //upper right
+			   (x2c  && y2hc) || //lower left
+			   (x2wc && y2hc);   //lower right
+	return s1c || s2c;
 }
 
 //interrupt handler

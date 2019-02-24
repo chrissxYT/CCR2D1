@@ -35,6 +35,10 @@ typedef int key;
 typedef void(*kel)(key);
 typedef void(*errhdl)(error);
 
+#ifndef __cplusplus
+typedef int bool;
+#endif
+
 #define SHIFTIN(x) (x[0] >> 24 | x[1] >> 16 | x[2] >> 8 | x[3])
 
 //using define for many string constants
@@ -182,6 +186,9 @@ CCR2D1_API void c2dsprmvr(ccr2d1 *obj, uint sid, uint x, uint y);
 
 //moves the sprite with the given id to the given absolute position
 CCR2D1_API void c2dsprmva(ccr2d1 *obj, uint sid, uint x, uint y);
+
+//check if the two sprites collide
+CCR2D1_API bool c2dchkcol(ccr2d1 *obj, uint sid1, uint sid2);
 
 //adds a new key event listener to the obj's kel
 CCR2D1_API void c2dkeladd(ccr2d1 *obj, kel ltr);
