@@ -12,13 +12,9 @@ void quicksort(sprite *spr, uint first, uint last)
 		while (i < j)
 		{
 			while (spr[i].pri<=spr[pivot].pri && i < last)
-			{
 				i++;
-			}
 			while (spr[j].pri > spr[pivot].pri)
-			{
 				j--;
-			}
 			if (i < j)
 			{
 				temp = spr[i];
@@ -45,9 +41,7 @@ TFUNC bs2p(void *vargp)
 		{
 			ulong i = y * obj->wid;
 			for (ulong x = 0; x < obj->wid; x++)
-			{
 				pxl[x][y] = obj->bck[i + x];
-			}
 		}
 		uint spc = obj->spc;
 		sprite *spr = malloc(spc * sizeof(sprite));
@@ -58,22 +52,18 @@ TFUNC bs2p(void *vargp)
 		{
 			sprite s = spr[i];
 			for(ulong j = 0; j < s.hei; j++)
-			{
 				for(ulong k = 0; k < s.wid; k++)
 				{
 					pixel p =
 						s.pxl[j * s.wid + k];
 					//is not transparent
 					if(p.dnsty != D_0)
-					{
 						pxl[(long long)
 							k + s.x][
 							(long long)j
 								+ s.y]
 							= p;
-					}
 				}
-			}
 		}
 		for(ulong x = 0; x < obj->wid; x++)
 			for(ulong y = 0; y < obj->hei; y++)
@@ -207,14 +197,14 @@ CCR2D1_API bool c2dchkcol(ccr2d1 *obj, uint sid1, uint sid2)
 	bool y2c  = y2 >= y1 && y2 < y1h;
 	bool x2wc = x2w >= x1 && x2w < x1w;
 	bool y2hc = y2h >= y1 && y2h < y1h;
-	bool s1c = (x1c  && y1c)  || //upper left
-			   (x1wc && y1c)  || //upper right
-			   (x1c  && y1hc) || //lower left
-			   (x1wc && y1hc);   //lower right
-	bool s2c = (x2c  && y2c)  || //upper left
-			   (x2wc && y2c)  || //upper right
-			   (x2c  && y2hc) || //lower left
-			   (x2wc && y2hc);   //lower right
+	bool s1c = (x1c  && y1c ) || //upper left
+		   (x1wc && y1c ) || //upper right
+		   (x1c  && y1hc) || //lower left
+		   (x1wc && y1hc);   //lower right
+	bool s2c = (x2c  && y2c ) || //upper left
+		   (x2wc && y2c ) || //upper right
+		   (x2c  && y2hc) || //lower left
+		   (x2wc && y2hc);   //lower right
 	return s1c || s2c;
 }
 
@@ -225,9 +215,7 @@ void int_hdl(int i)
 	{
 #if !WIN
 		if(system("stty cooked") == -1)
-		{
 			error_handler(ERR_SYSTEM_FAIL);
-		}
 #endif
 		exit(0);
 	}
@@ -261,15 +249,10 @@ CCR2D1_API ccr2d1 *c2dnew(pixel *bck, ulong wid, ulong hei,
 	obj->hei = hei;
 	obj->run = 0;
 	obj->bfr.c = malloc(hei * sizeof(char*));
-	for(ulong i = 0; i < hei; i++)
-	{
-		obj->bfr.c[i] = malloc(wid * 10);
-	}
+	for(ulong i = 0; i < hei; i++) obj->bfr.c[i] = malloc(wid*10);
 	obj->bfr.p = malloc(wid * sizeof(pixel*));
 	for(ulong i = 0; i < wid; i++)
-	{
 		obj->bfr.p[i] = malloc(hei * sizeof(pixel));
-	}
 	obj->bfr.i = malloc(wid * hei * 10 * sizeof(int) + hei * 2);
 	obj->spr = malloc(sizeof(sprite) * max_spr);
 	obj->spc = 0;
@@ -301,9 +284,7 @@ CCR2D1_API void c2dstart(ccr2d1 *obj)
 	system("clear");
 #if !WIN
 	if(system("stty raw") == -1)
-	{
 		error_handler(ERR_SYSTEM_FAIL);
-	}
 #endif
 	obj->run = 1;
 	obj->wkr[0] = thread_create(bs2p, obj);
