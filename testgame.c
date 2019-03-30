@@ -3,6 +3,7 @@
 #define WID 20
 #define HEI 10
 #define FPS 60
+#define SLP 1000 / FPS
 #define PXL WID * HEI
 
 ccr2d1 *obj;
@@ -10,14 +11,13 @@ ccr2d1 *obj;
 void keyh(key k)
 {
 	obj->spr[0].pxl[0].dnsty++;
+	obj->spr[0].pxl[3].dnsty = k;
 }
 
 void err(error e)
 {
-	if(e == ERR_SYSTEM_FAIL)
-	{
-		puts("AAAAAHHHHH, WE BROKE SYSTEM");
-	}
+	c2dstop(obj);
+	while(1) printf("error: 0x%8x\n", e);
 }
 
 int main()
@@ -25,7 +25,7 @@ int main()
 	error_handler = err;
 	pixel bck[PXL];
 	pxlset(bck, D_1, PXL);
-	obj = c2dnew(bck, WID, HEI, 10, 1000 / FPS, 10);
+	obj = c2dnew(bck, WID, HEI, 10, SLP, 10);
 	c2dstart(obj);
 	pixel spr[9];
 	pxlset(spr, D_0, 9);

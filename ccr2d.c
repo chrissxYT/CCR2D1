@@ -33,7 +33,7 @@ void quicksort(sprite *spr, uint first, uint last)
 //background and sprites to pixels
 TFUNC bs2p(void *vargp)
 {
-	ccr2d1 *obj = setup_thread(vargp);
+	setup_thread(vargp);
 	while (1)
 	{
 		pixel **pxl = pxlarr2dmallocxy(obj->wid, obj->hei);
@@ -74,33 +74,27 @@ TFUNC bs2p(void *vargp)
 	}
 }
 
-//uint istrlen(int *i)
-//{
-//	uint j = 0;
-//	while(i[j]) j++;
-//	return j;
-//}
-
 //pixels to chars
 TFUNC p2c(void *vargp)
 {
-	ccr2d1 *obj = setup_thread(vargp);
+	setup_thread(vargp);
 	while(1)
 	{
 		for(ulong y = 0; y < obj->hei; y++)
 		{
 			ulong j = obj->wid * 10;
 			char *bfr = malloc(j);
-			memset(bfr, 0, j);
+			char *bfs = bfr;
 			for(ulong x = 0; x < obj->wid; x++)
 			{
-				size_t i = strlen(bfr);
 				pixel p = obj->bfr.p[x][y];
-				memcpy(bfr + i, p.color, strlen(p.color));
-				bfr[strlen(bfr)] = p.dnsty;
+				str clr = p.color;
+				while(*clr) *bfr++ = *clr++;
+				*bfr++ = p.dnsty;
 			}
-			memcpy(obj->bfr.c[y], bfr, j);
-			free(bfr);
+			*bfr = '\0';
+			memcpy(obj->bfr.c[y], bfs, j);
+			free(bfs);
 		}
 		sleep_ms(obj->slp);
 	}
@@ -109,20 +103,19 @@ TFUNC p2c(void *vargp)
 //chars to linear ints
 TFUNC c2li(void *vargp)
 {
-	ccr2d1 *obj = setup_thread(vargp);
+	setup_thread(vargp);
 	while(1)
 	{
-		ulong j = 0;
 		int *i = obj->bfr.i;
 		char **c = obj->bfr.c;
 		for(ulong y = 0; y < obj->hei; y++)
 		{
 			for(ulong x = 0; x < obj->wid; x++)
-				i[j++] = c[y][x];
-			i[j++] = '\r';
-			i[j++] = '\n';
+				*i++ = c[y][x];
+			*i++ = '\r';
+			*i++ = '\n';
 		}
-		i[j] = '\0';
+		*i = '\0';
 		sleep_ms(obj->slp);
 	}
 }
@@ -130,7 +123,7 @@ TFUNC c2li(void *vargp)
 //linear ints to screen
 TFUNC li2s(void *vargp)
 {
-	ccr2d1 *obj = setup_thread(vargp);
+	setup_thread(vargp);
 	while(1)
 	{
 #if WIN
@@ -139,11 +132,10 @@ TFUNC li2s(void *vargp)
 		SetConsoleCursorPosition(GetConsoleWindow(), c);
 #else
 		char *c = M_0_0;
-		while (*c) putc(*c, stdout), c++;
+		while(*c) putc(*c++, stdout);
 #endif
 		int *i = obj->bfr.i;
-		ulong j = 0;
-		while(i[j]) putc(i[j++], stdout);
+		while(*i) putc(*i++, stdout);
 		sleep_ms(obj->slp);
 	}
 }
@@ -169,12 +161,6 @@ CCR2D1_API void c2dsprmvr(ccr2d1 *obj, uint sid, uint x, uint y)
 	c2dsprmva(obj, sid,
 		xx + obj->spr[sid].wid < obj->wid ? xx : obj->wid - 1,
 		yy + obj->spr[sid].hei < obj->hei ? yy : obj->hei - 1);
-}
-
-CCR2D1_API void c2dsprmva(ccr2d1 *obj, uint sid, uint x, uint y)
-{
-	obj->spr[sid].x = x;
-	obj->spr[sid].y = y;
 }
 
 CCR2D1_API bool c2dchkcol(ccr2d1 *obj, uint sid1, uint sid2)
@@ -219,23 +205,19 @@ void int_hdl(int i)
 #endif
 		exit(0);
 	}
-	else if(i == SIGFPE) error_handler(ERR_SIGFPE);
-	else if(i == SIGILL) error_handler(ERR_SIGILL);
-	else error_handler(ERR_ILLSIG);
+	else error_handler(
+		i == SIGFPE ? ERR_SIGFPE :
+		i == SIGILL ? ERR_SIGILL :
+		ERR_ILLSIG);
 }
 
 //key controller
 TFUNC kc(void *vargp)
 {
-	ccr2d1 *obj = setup_thread(vargp);
+	setup_thread(vargp);
 	while(1)
 	{
-		int i =
-#if WIN
-		_getch();
-#else
-		getchar();
-#endif
+		int i = _PASSIVE_READ();
 		if(i == 3) int_hdl(SIGINT);
 		else for(uint j = 0; j<obj->klc; j++) obj->kel[j](i);
 	}
@@ -262,11 +244,6 @@ CCR2D1_API ccr2d1 *c2dnew(pixel *bck, ulong wid, ulong hei,
 	obj->slp = slp;
 	obj->kel = malloc(max_kel * sizeof(void*));
 	obj->klc = 0;
-#if WIN
-	//since Nov 2015 Windows 10 supports ASCII escape codes with this
-	SetConsoleMode(GetConsoleWindow(),
-		ENABLE_VIRTUAL_TERMINAL_PROCESSING);
-#endif
 	return obj;
 }
 
@@ -281,8 +258,14 @@ CCR2D1_API void c2dstart(ccr2d1 *obj)
 	signal(SIGTERM, int_hdl);
 	//this should clear but it doesnt
 	//putc('\x0c', stdin);
-	system("clear");
-#if !WIN
+	system(
+#if WIN
+	"cls");
+	//since Nov 2015 Windows 10 supports ASCII escape codes with this
+	SetConsoleMode(GetConsoleWindow(),
+		ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+#else
+	"clear");
 	if(system("stty raw") == -1)
 		error_handler(ERR_SYSTEM_FAIL);
 #endif
@@ -315,9 +298,7 @@ CCR2D1_API void c2dstop(ccr2d1 *obj)
 	free(obj);
 #if !WIN
 	if(system("stty cooked") == -1)
-	{
 		error_handler(ERR_SYSTEM_FAIL);
-	}
 #endif
 }
 
@@ -328,23 +309,6 @@ CCR2D1_API void pxlset(pixel *ptr, int dty, ulong num)
 		ptr[j].dnsty = dty;
 		ptr[j].color = C_NULL;
 	}
-}
-
-CCR2D1_API void pxlcpy(pixel *dest, pixel *src, ulong n) {
-	for(ulong i = 0; i < n; i++) dest[i] = src[i];
-}
-
-//void pxlarr(ulong len, pixel *bfr)
-//{
-//	for(ulong j = 0; j < len; j++)
-//	{
-//		bfr[j].dnsty = D_0;
-//		bfr[j].color = C_NULL;
-//	}
-//}
-
-CCR2D1_API void sprcpy(sprite *dest, sprite *src, ulong n) {
-	for(ulong i = 0; i < n; i++) dest[i] = src[i];
 }
 
 CCR2D1_API void c2dkeladd(ccr2d1 *obj, kel ltr)
@@ -387,47 +351,17 @@ CCR2D1_API thread thread_create(tstart func, void *arg)
 #endif
 }
 
-CCR2D1_API void thread_cancel(thread t)
-{
-#if WIN
-	TerminateThread(t, 0);
-#else
-	pthread_cancel(t);
-#endif
-}
-
-CCR2D1_API ccr2d1 *setup_thread(void *arg)
-{
-#if !WIN
-	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, 0);
-#endif
-	return (ccr2d1*)arg;
-}
-
 CCR2D1_API pixel **pxlarr2dmallocxy(ulong wid, ulong hei)
 {
 	pixel **pxl = malloc(wid * sizeof(pixel*));
 	for (uint i = 0; i < wid; i++)
-	{
 		pxl[i] = malloc(hei * sizeof(pixel));
-	}
 	return pxl;
 }
 
 CCR2D1_API void pxlarr2dfreexy(pixel **pxl, ulong wid)
 {
 	for (uint i = 0; i < wid; i++)
-	{
 		free(pxl[i]);
-	}
 	free(pxl);
-}
-
-CCR2D1_API void sleep_ms(uint ms)
-{
-#if WIN
-    Sleep(ms);
-#else
-    usleep(ms * 1000);
-#endif
 }

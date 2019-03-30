@@ -17,6 +17,10 @@ typedef LPTHREAD_START_ROUTINE tstart;
 #define CCR2D1_API __declspec(dllimport)
 #endif
 #define TFUNC DWORD WINAPI
+#define _TSETUP_CANCEL_TYPE
+#define _CANCEL_THREAD(t) TerminateThread(t, 0)
+#define _MS_SLEEP(MS) Sleep(MS)
+#define _PASSIVE_READ _getch
 #else
 #define WIN 0
 #include <unistd.h>
@@ -25,6 +29,10 @@ typedef pthread_t thread;
 typedef void *(*tstart) (void *);
 #define CCR2D1_API
 #define TFUNC void *
+#define _TSETUP_CANCEL_TYPE pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, 0)
+#define _CANCEL_THREAD(t) pthread_cancel(t)
+#define _MS_SLEEP(MS) usleep(MS * 1000)
+#define _PASSIVE_READ getchar
 #endif
 
 typedef unsigned uint;
@@ -185,7 +193,9 @@ CCR2D1_API uint c2dspradd(ccr2d1 *obj, uint x, uint y, uint pri,
 CCR2D1_API void c2dsprmvr(ccr2d1 *obj, uint sid, uint x, uint y);
 
 //moves the sprite with the given id to the given absolute position
-CCR2D1_API void c2dsprmva(ccr2d1 *obj, uint sid, uint x, uint y);
+#define c2dsprmva(obj, sid, new_x, new_y) \
+	obj->spr[sid].x = new_x; \
+	obj->spr[sid].y = new_y;
 
 //check if the two sprites collide
 CCR2D1_API bool c2dchkcol(ccr2d1 *obj, uint sid1, uint sid2);
@@ -194,27 +204,29 @@ CCR2D1_API bool c2dchkcol(ccr2d1 *obj, uint sid1, uint sid2);
 CCR2D1_API void c2dkeladd(ccr2d1 *obj, kel ltr);
 
 //pauses the thread for the given milliseconds
-CCR2D1_API void sleep_ms(uint ms);
+#define sleep_ms(ms) _MS_SLEEP(ms)
 
 //a memset for pixel arrays
 CCR2D1_API void pxlset(pixel *ptr, int dty, ulong num);
 
 //a version of memcpy specifically and only for pixel arrays
-CCR2D1_API void pxlcpy(pixel *dest, pixel *src, ulong n);
+#define pxlcpy(dest, src, n) \
+	for (ulong i = 0; i < n; i++) dest[i] = src[i];
 
 //a version of memcpy specifically and only for sprite arrays
-CCR2D1_API void sprcpy(sprite *dest, sprite *src, ulong n);
+#define sprcpy(dest, src, n) \
+	for (ulong i = 0; i < n; i++) dest[i] = src[i];
 
 //creates a new thread that runs func with arg and returns it
 CCR2D1_API thread thread_create(tstart func, void *arg);
 
 //just crashes the given thread t
-CCR2D1_API void thread_cancel(thread t);
+#define thread_cancel(t) _CANCEL_THREAD(t)
 
 //usually the first function called by a new thread,
 //sets canceltype for the thread if not on windows,
 //casts arg to a ccr2d1 ptr and returns it
-CCR2D1_API ccr2d1 *setup_thread(void *arg);
+#define setup_thread(arg) _TSETUP_CANCEL_TYPE; ccr2d1 *obj = (ccr2d1*)arg
 
 //mallocs a new pixel array that's indexed [x][y]
 CCR2D1_API pixel **pxlarr2dmallocxy(ulong wid, ulong hei);
