@@ -46,8 +46,7 @@ TFUNC bs2p(void *vargp)
 		uint spc = obj->spc;
 		sprite *spr = malloc(spc * sizeof(sprite));
 		sprcpy(spr, obj->spr, spc);
-		if(spc != 0)
-			quicksort(spr, 0, spc - 1);
+		if(spc > 0) quicksort(spr, 0, spc - 1);
 		for(uint i = 0; i < spc; i++)
 		{
 			sprite s = spr[i];
@@ -58,16 +57,13 @@ TFUNC bs2p(void *vargp)
 						s.pxl[j * s.wid + k];
 					//is not transparent
 					if(p.dnsty != D_0)
-						pxl[(long long)
-							k + s.x][
-							(long long)j
-								+ s.y]
+						pxl[k + s.x][
+							j + s.y]
 							= p;
 				}
 		}
-		for(ulong x = 0; x < obj->wid; x++)
-			for(ulong y = 0; y < obj->hei; y++)
-				obj->bfr.p[x][y] = pxl[x][y];
+		for (ulong x = 0; x < obj->wid; x++)
+			memcpy(obj->bfr.p[x], pxl[x], obj->hei);
 		pxlarr2dfreexy(pxl, obj->wid);
 		free(spr);
 		sleep_ms(obj->slp);
@@ -110,8 +106,9 @@ TFUNC c2li(void *vargp)
 		char **c = obj->bfr.c;
 		for(ulong y = 0; y < obj->hei; y++)
 		{
+			char *d = c[y];
 			for(ulong x = 0; x < obj->wid; x++)
-				*i++ = c[y][x];
+				*i++ = d[x];
 			*i++ = '\r';
 			*i++ = '\n';
 		}
@@ -126,14 +123,7 @@ TFUNC li2s(void *vargp)
 	setup_thread(vargp);
 	while(1)
 	{
-#if WIN
-		COORD c;
-		c.X = c.Y = 0;
-		SetConsoleCursorPosition(GetConsoleWindow(), c);
-#else
-		char *c = M_0_0;
-		while(*c) putc(*c++, stdout);
-#endif
+		M_0_0();
 		int *i = obj->bfr.i;
 		while(*i) putc(*i++, stdout);
 		sleep_ms(obj->slp);
@@ -143,7 +133,7 @@ TFUNC li2s(void *vargp)
 CCR2D1_API uint c2dspradd(ccr2d1 *obj, uint x, uint y, uint pri,
 	ulong wid, ulong hei, pixel *pxl)
 {
-	//setting the sprite first avoids toc-tou
+	//setting the sprite first avoids ToC/ToU
 	obj->spr[obj->spc].pri = pri;
 	obj->spr[obj->spc].wid = wid;
 	obj->spr[obj->spc].hei = hei;

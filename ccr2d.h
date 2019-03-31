@@ -4,6 +4,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _MSC_VER
+//disable the warning for spectre mitigations
+#pragma warning(disable :5040)
+#endif
+
 #if (defined(_WIN32) || defined(_WIN64)) && !defined(__CYGWIN__)
 #define WIN 1
 #define WIN32_LEAN_AND_MEAN
@@ -21,6 +26,9 @@ typedef LPTHREAD_START_ROUTINE tstart;
 #define _CANCEL_THREAD(t) TerminateThread(t, 0)
 #define _MS_SLEEP(MS) Sleep(MS)
 #define _PASSIVE_READ _getch
+#define M_0_0() COORD c; \
+	c.X = c.Y = 0; \
+	SetConsoleCursorPosition(GetConsoleWindow(), c)
 #else
 #define WIN 0
 #include <unistd.h>
@@ -33,6 +41,9 @@ typedef void *(*tstart) (void *);
 #define _CANCEL_THREAD(t) pthread_cancel(t)
 #define _MS_SLEEP(MS) usleep(MS * 1000)
 #define _PASSIVE_READ getchar
+//move the cursor to (0;0)
+#define M_0_0() char *c = "\e[0;0f"; \
+	while (*c) putc(*c++, stdout)
 #endif
 
 typedef unsigned uint;
@@ -75,11 +86,6 @@ typedef int bool;
 #define C_LIGHT_CYAN "\e[96m"
 #define C_WHITE "\e[97m"
 #define C_NULL ""
-
-#if !WIN
-//move the cursor to (0;0)
-#define M_0_0 "\e[0;0f"
-#endif
 
 #define D_0 ' '
 #define D_1 '+'
