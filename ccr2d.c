@@ -224,7 +224,8 @@ CCR2D1_API ccr2d1 *c2dnew(pixel *bck, ulong wid, ulong hei,
 	for(ulong i = 0; i < hei; i++) obj->bfr.c[i] = malloc(wid*10);
 	obj->bfr.p = malloc(wid * sizeof(pixel*));
 	for(ulong i = 0; i < wid; i++)
-		obj->bfr.p[i] = malloc(hei * sizeof(pixel));
+		obj->bfr.p[i] = malloc(hei * sizeof(pixel)),
+			pxlset(obj->bfr.p[i], D_0, hei);
 	obj->bfr.i = malloc(wid * hei * 10 * sizeof(int) + hei * 2);
 	obj->spr = malloc(sizeof(sprite) * max_spr);
 	obj->spc = 0;
