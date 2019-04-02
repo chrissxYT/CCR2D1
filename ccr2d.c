@@ -6,15 +6,13 @@ void quicksort(sprite *spr, uint first, uint last)
 	if (first < last)
 	{
 		sprite temp;
-		uint pivot = first;
+		uint p = first;
 		uint i = first;
 		uint j = last;
 		while (i < j)
 		{
-			while (spr[i].pri<=spr[pivot].pri && i < last)
-				i++;
-			while (spr[j].pri > spr[pivot].pri)
-				j--;
+			while(spr[i].pri<=spr[p].pri && i < last) i++;
+			while(spr[j].pri > spr[p].pri) j--;
 			if (i < j)
 			{
 				temp = spr[i];
@@ -22,8 +20,8 @@ void quicksort(sprite *spr, uint first, uint last)
 				spr[j] = temp;
 			}
 		}
-		temp = spr[pivot];
-		spr[pivot] = spr[j];
+		temp = spr[p];
+		spr[p] = spr[j];
 		spr[j] = temp;
 		quicksort(spr, first, j - 1);
 		quicksort(spr, j + 1, last);
@@ -225,7 +223,7 @@ CCR2D1_API ccr2d1 *c2dnew(pixel *bck, ulong wid, ulong hei,
 	obj->bfr.p = malloc(wid * sizeof(pixel*));
 	for(ulong i = 0; i < wid; i++)
 		obj->bfr.p[i] = malloc(hei * sizeof(pixel)),
-			pxlset(obj->bfr.p[i], D_0, hei);
+			pxlset(obj->bfr.p[i], D_E, hei);
 	obj->bfr.i = malloc(wid * hei * 10 * sizeof(int) + hei * 2);
 	obj->spr = malloc(sizeof(sprite) * max_spr);
 	obj->spc = 0;

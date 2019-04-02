@@ -54,7 +54,7 @@ typedef int key;
 typedef void(*kel)(key);
 typedef void(*errhdl)(error);
 
-#ifndef __cplusplus
+#ifndef bool
 typedef int bool;
 #endif
 
@@ -87,6 +87,7 @@ typedef int bool;
 #define C_WHITE "\e[97m"
 #define C_NULL ""
 
+#define D_E 'E'
 #define D_0 ' '
 #define D_1 '+'
 #define D_2 '#'
