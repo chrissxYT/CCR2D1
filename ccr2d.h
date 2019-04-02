@@ -169,6 +169,19 @@ typedef struct
 	uint klc;
 } ccr2d1;
 
+typedef enum
+{
+	NONE = 0,
+	TL1,
+	TR1,
+	BL1,
+	BR1,
+	TL2,
+	TR2,
+	BL2,
+	BR2,
+} colpos;
+
 //mallocs a new CCR2D1 object,
 //sets width and height,
 //mallocs space for 2 workers,
@@ -204,7 +217,7 @@ CCR2D1_API void c2dsprmvr(ccr2d1 *obj, uint sid, uint x, uint y);
 	obj->spr[sid].y = new_y;
 
 //check if the two sprites collide
-CCR2D1_API bool c2dchkcol(ccr2d1 *obj, uint sid1, uint sid2);
+CCR2D1_API colpos c2dchkcol(ccr2d1 *obj, uint sid1, uint sid2);
 
 //adds a new key event listener to the obj's kel
 CCR2D1_API void c2dkeladd(ccr2d1 *obj, kel ltr);

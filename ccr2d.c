@@ -153,7 +153,7 @@ CCR2D1_API void c2dsprmvr(ccr2d1 *obj, uint sid, uint x, uint y)
 		yy + obj->spr[sid].hei < obj->hei ? yy : obj->hei - 1);
 }
 
-CCR2D1_API bool c2dchkcol(ccr2d1 *obj, uint sid1, uint sid2)
+CCR2D1_API colpos c2dchkcol(ccr2d1 *obj, uint sid1, uint sid2)
 {
 	sprite s1 = obj->spr[sid1];
 	sprite s2 = obj->spr[sid2];
@@ -173,15 +173,15 @@ CCR2D1_API bool c2dchkcol(ccr2d1 *obj, uint sid1, uint sid2)
 	bool y2c  = y2 >= y1 && y2 < y1h;
 	bool x2wc = x2w >= x1 && x2w < x1w;
 	bool y2hc = y2h >= y1 && y2h < y1h;
-	bool s1c = (x1c  && y1c ) || //upper left
-		   (x1wc && y1c ) || //upper right
-		   (x1c  && y1hc) || //lower left
-		   (x1wc && y1hc);   //lower right
-	bool s2c = (x2c  && y2c ) || //upper left
-		   (x2wc && y2c ) || //upper right
-		   (x2c  && y2hc) || //lower left
-		   (x2wc && y2hc);   //lower right
-	return s1c || s2c;
+	return (x1c  && y1c ) ? TL1 :
+	       (x1wc && y1c ) ? TR1 :
+	       (x1c  && y1hc) ? BL1 :
+	       (x1wc && y1hc) ? BR1 :
+	       (x2c  && y2c ) ? TL2 :
+	       (x2wc && y2c ) ? TR2 :
+	       (x2c  && y2hc) ? BL2 :
+	       (x2wc && y2hc) ? BR2 :
+	       NONE;
 }
 
 //interrupt handler
