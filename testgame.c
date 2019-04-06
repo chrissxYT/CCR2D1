@@ -1,4 +1,5 @@
 #include "ccr2d.h"
+#include <signal.h>
 
 #define WID 20
 #define HEI 10
@@ -7,11 +8,20 @@
 #define PXL WID * HEI
 
 ccr2d1 *obj;
+uint sid;
 
 void keyh(key k)
 {
-	obj->spr[0].pxl[0].dnsty++;
-	obj->spr[0].pxl[3].dnsty = k;
+	if(k == 'q') raise(SIGINT);
+	//this will cause memory leaks but on our
+	//test machines we got enough ram
+	if(obj->spr[sid].pxl[0].dnsty == D_0)
+		obj->spr[sid].pxl[0].dnsty = malloc(1),
+		*obj->spr[sid].pxl[0].dnsty = *D_0;
+	(*obj->spr[sid].pxl[0].dnsty)++;
+	if(obj->spr[sid].pxl[3].dnsty == D_0)
+		obj->spr[sid].pxl[3].dnsty = malloc(1);
+	(*obj->spr[sid].pxl[3].dnsty) = k;
 }
 
 void err(error e)
@@ -33,7 +43,7 @@ int main()
 	spr[1].dnsty = D_2;
 	spr[4].color = C_GREEN;
 	spr[4].dnsty = D_1;
-	c2dspradd(obj, 2, 2, 1, 3, 3, spr);
+	sid = c2dspradd(obj, 2, 2, 1, 3, 3, spr);
 	c2dkeladd(obj, keyh);
 	while(1) sleep_ms(0);
 }

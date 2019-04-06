@@ -1,6 +1,6 @@
 CCR2D1Picture
 =============
-A format for encoding pictures for use in CCR2D1.
+A format to encode pictures for use in CCR2D1.
 
 Header
 ------
@@ -14,10 +14,10 @@ height << 24, height<< 16, height<<  8, height}
 Pixels
 ------
 for each pixel
-	{dnsty, color.length, color as ascii}
+	{color.length, color, dnsty.length, dnsty}
 
 
 CCR2D1CompressedPicture
 =======================
-CCR2D1Ps might be compressed with GZip, but it's too much of a hassle
-right now.
+CCR2D1Ps might be compressed with GZip in the future, but it's too
+much of a hassle right now.

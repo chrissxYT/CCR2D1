@@ -54,7 +54,7 @@ TFUNC bs2p(void *vargp)
 					pixel p =
 						s.pxl[j * s.wid + k];
 					//is not transparent
-					if(p.dnsty != D_0)
+					if(strcmp(p.dnsty, D_0))
 						pxl[k + s.x][
 							j + s.y]
 							= p;
@@ -82,9 +82,10 @@ TFUNC p2c(void *vargp)
 			for(ulong x = 0; x < obj->wid; x++)
 			{
 				pixel p = obj->bfr.p[x][y];
-				str clr = p.color;
-				while(*clr) *bfr++ = *clr++;
-				*bfr++ = p.dnsty;
+				str s = p.color;
+				while(*s) *bfr++ = *s++;
+				s = p.dnsty;
+				while(*s) *bfr++ = *s++;
 			}
 			*bfr = '\0';
 			memcpy(obj->bfr.c[y], bfs, j);
@@ -129,7 +130,7 @@ TFUNC li2s(void *vargp)
 }
 
 CCR2D1_API uint c2dspradd(ccr2d1 *obj, uint x, uint y, uint pri,
-	ulong wid, ulong hei, pixel *pxl)
+	uint wid, uint hei, pixel *pxl)
 {
 	//setting the sprite first avoids ToC/ToU
 	obj->spr[obj->spc].pri = pri;
@@ -211,7 +212,7 @@ TFUNC kc(void *vargp)
 	}
 }
 
-CCR2D1_API ccr2d1 *c2dnew(pixel *bck, ulong wid, ulong hei,
+CCR2D1_API ccr2d1 *c2dnew(pixel *bck, uint wid, uint hei,
 	uint max_spr, uint slp, uint max_kel)
 {
 	ccr2d1 *obj = malloc(sizeof(ccr2d1));
@@ -291,7 +292,7 @@ CCR2D1_API void c2dstop(ccr2d1 *obj)
 #endif
 }
 
-CCR2D1_API void pxlset(pixel *ptr, int dty, ulong num)
+CCR2D1_API void pxlset(pixel *ptr, str dty, ulong num)
 {
 	for(ulong j = 0; j < num; j++)
 	{
@@ -306,7 +307,7 @@ CCR2D1_API void c2dkeladd(ccr2d1 *obj, kel ltr)
 	obj->klc++;
 }
 
-CCR2D1_API void c2dldp(FILE *stream, pixel *buffer, ulong *width, ulong *height)
+CCR2D1_API void c2dldp(FILE *stream, pixel *buffer, uint *width, uint *height)
 {
 	char hcorrect[8] = {'C', 'C', 'R', '2', 'D', '1', 'P', '\x01'};
 	char hcheck[8];
@@ -322,10 +323,12 @@ CCR2D1_API void c2dldp(FILE *stream, pixel *buffer, ulong *width, ulong *height)
 	ulong pc = *width * *height;
 	for(ulong i = 0; i < pc; i++)
 	{
-		buffer[i].dnsty = fgetc(stream);
 		int cl = fgetc(stream);
 		buffer[i].color = malloc(cl);
 		fread(buffer[i].color, 1, cl, stream);
+		int dl = fgetc(stream);
+		buffer[i].dnsty = malloc(dl);
+		fread(buffer[i].dnsty, 1, dl, stream);
 	}
 }
 
@@ -340,7 +343,7 @@ CCR2D1_API thread thread_create(tstart func, void *arg)
 #endif
 }
 
-CCR2D1_API pixel **pxlarr2dmallocxy(ulong wid, ulong hei)
+CCR2D1_API pixel **pxlarr2dmallocxy(uint wid, uint hei)
 {
 	pixel **pxl = malloc(wid * sizeof(pixel*));
 	for (uint i = 0; i < wid; i++)
@@ -348,7 +351,7 @@ CCR2D1_API pixel **pxlarr2dmallocxy(ulong wid, ulong hei)
 	return pxl;
 }
 
-CCR2D1_API void pxlarr2dfreexy(pixel **pxl, ulong wid)
+CCR2D1_API void pxlarr2dfreexy(pixel **pxl, uint wid)
 {
 	for (uint i = 0; i < wid; i++)
 		free(pxl[i]);

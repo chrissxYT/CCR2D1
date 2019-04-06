@@ -87,11 +87,11 @@ typedef int bool;
 #define C_WHITE "\e[97m"
 #define C_NULL ""
 
-#define D_E 'E'
-#define D_0 ' '
-#define D_1 '+'
-#define D_2 '#'
-#define D_3 '@'
+#define D_E "E"
+#define D_0 " "
+#define D_1 "+"
+#define D_2 "#"
+#define D_3 "@"
 
 //a system() call failed
 #define ERR_SYSTEM_FAIL      0x00000001
@@ -109,8 +109,8 @@ errhdl error_handler = 0;
 //a single pixel in an image
 typedef struct
 {
-	//the char printed
-	int dnsty;
+	//the char printed (str for utf8 support)
+	str dnsty;
 	//ascii color code
 	str color;
 } pixel;
@@ -121,9 +121,9 @@ typedef struct
 	//priority (0 is lowest, 0xffffffff highest)
 	uint pri;
 	//width in console pixels
-	ulong wid;
+	uint wid;
 	//height in console pixels
-	ulong hei;
+	uint hei;
 	//x position
 	uint x;
 	//y position
@@ -153,9 +153,9 @@ typedef struct
 	//the workers for rendering, drawing, etc.
 	thread wkr[5];
 	//the render width
-	ulong wid;
+	uint wid;
 	//the render height
-	ulong hei;
+	uint hei;
 	//all the sprites to be drawn
 	sprite *spr;
 	//sprite count
@@ -189,7 +189,7 @@ typedef enum
 //mallocs a wid * hei buffer,
 //mallocs space for max_spr sprites,
 //mallocs bck and copies it
-CCR2D1_API ccr2d1 *c2dnew(pixel *bck, ulong wid, ulong hei,
+CCR2D1_API ccr2d1 *c2dnew(pixel *bck, uint wid, uint hei,
 		uint max_spr, uint slp, uint max_kel);
 
 //starts the 2 worker threads,
@@ -207,7 +207,7 @@ CCR2D1_API void c2dstop(ccr2d1 *obj);
 //adds a new sprite to the obj's spr
 //returns its id
 CCR2D1_API uint c2dspradd(ccr2d1 *obj, uint x, uint y, uint pri,
-		ulong wid, ulong hei, pixel *pxl);
+		uint wid, uint hei, pixel *pxl);
 
 //moves the sprite with the given id relative to its current position
 CCR2D1_API void c2dsprmvr(ccr2d1 *obj, uint sid, uint x, uint y);
@@ -227,7 +227,7 @@ CCR2D1_API void c2dkeladd(ccr2d1 *obj, kel ltr);
 #define sleep_ms(ms) _MS_SLEEP(ms)
 
 //a memset for pixel arrays
-CCR2D1_API void pxlset(pixel *ptr, int dty, ulong num);
+CCR2D1_API void pxlset(pixel *ptr, str dty, ulong num);
 
 //a version of memcpy specifically and only for pixel arrays
 #define pxlcpy(dest, src, n) \
@@ -249,11 +249,11 @@ CCR2D1_API thread thread_create(tstart func, void *arg);
 #define setup_thread(arg) _TSETUP_CANCEL_TYPE; ccr2d1 *obj = (ccr2d1*)arg
 
 //mallocs a new pixel array that's indexed [x][y]
-CCR2D1_API pixel **pxlarr2dmallocxy(ulong wid, ulong hei);
+CCR2D1_API pixel **pxlarr2dmallocxy(uint wid, uint hei);
 
 //frees the given pixel array that's indexed [x][y]
-CCR2D1_API void pxlarr2dfreexy(pixel **pxl, ulong wid);
+CCR2D1_API void pxlarr2dfreexy(pixel **pxl, uint wid);
 
 //load picture - reads a CCR2D1P from stream into buffer and sets
 //*width to the width and *height to the height
-CCR2D1_API void c2dldp(FILE *stream, pixel *buffer, ulong *width, ulong *height);
+CCR2D1_API void c2dldp(FILE *stream, pixel *buffer, uint *width, uint *height);
