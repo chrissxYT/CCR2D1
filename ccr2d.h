@@ -11,6 +11,7 @@
 
 #if (defined(_WIN32) || defined(_WIN64)) && !defined(__CYGWIN__)
 #define WIN 1
+#define UNIX 0
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <conio.h>
@@ -22,24 +23,25 @@ typedef LPTHREAD_START_ROUTINE tstart;
 #define CCR2D1_API __declspec(dllimport)
 #endif
 #define TFUNC DWORD WINAPI
-#define _TSETUP_CANCEL_TYPE
-#define _CANCEL_THREAD(t) TerminateThread(t, 0)
-#define _MS_SLEEP(MS) Sleep(MS)
+#define _TSETUP_CANCEL_TYPE()
+#define thread_cancel(t) TerminateThread((t), 0)
+#define sleep_ms(MS) Sleep((MS))
 #define _PASSIVE_READ _getch
 #define M_0_0() COORD c; \
 	c.X = c.Y = 0; \
 	SetConsoleCursorPosition(GetConsoleWindow(), c)
 #else
 #define WIN 0
+#define UNIX 1
 #include <unistd.h>
 #include <pthread.h>
 typedef pthread_t thread;
 typedef void *(*tstart) (void *);
 #define CCR2D1_API
 #define TFUNC void *
-#define _TSETUP_CANCEL_TYPE pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, 0)
-#define _CANCEL_THREAD(t) pthread_cancel(t)
-#define _MS_SLEEP(MS) usleep(MS * 1000)
+#define _TSETUP_CANCEL_TYPE() pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, 0)
+#define thread_cancel(t) pthread_cancel(t)
+#define sleep_ms(MS) usleep((MS) * 1000)
 #define _PASSIVE_READ getchar
 //move the cursor to (0;0)
 #define M_0_0() char *c = "\e[0;0f"; \
@@ -215,17 +217,14 @@ CCR2D1_API void c2dsprmvr(ccr2d1 *obj, uint sid, uint x, uint y);
 
 //moves the sprite with the given id to the given absolute position
 #define c2dsprmva(obj, sid, new_x, new_y) \
-	obj->spr[sid].x = new_x; \
-	obj->spr[sid].y = new_y;
+	(obj)->spr[(sid)].x = (new_x); \
+	(obj)->spr[(sid)].y = (new_y);
 
 //check if the two sprites collide
 CCR2D1_API colpos c2dchkcol(ccr2d1 *obj, uint sid1, uint sid2);
 
 //adds a new key event listener to the obj's kel
 CCR2D1_API void c2dkeladd(ccr2d1 *obj, kel ltr);
-
-//pauses the thread for the given milliseconds
-#define sleep_ms(ms) _MS_SLEEP(ms)
 
 //a memset for pixel arrays
 CCR2D1_API void pxlset(pixel *ptr, str dty, ulong num);
@@ -241,13 +240,10 @@ CCR2D1_API void pxlset(pixel *ptr, str dty, ulong num);
 //creates a new thread that runs func with arg and returns it
 CCR2D1_API thread thread_create(tstart func, void *arg);
 
-//just crashes the given thread t
-#define thread_cancel(t) _CANCEL_THREAD(t)
-
 //usually the first function called by a new thread,
 //sets canceltype for the thread if not on windows,
 //casts arg to a ccr2d1 ptr and returns it
-#define setup_thread(arg) _TSETUP_CANCEL_TYPE; ccr2d1 *obj = (ccr2d1*)arg
+#define setup_thread(arg) _TSETUP_CANCEL_TYPE(); ccr2d1 *obj = (ccr2d1*)arg
 
 //mallocs a new pixel array that's indexed [x][y]
 CCR2D1_API pixel **pxlarr2dmallocxy(uint wid, uint hei);
