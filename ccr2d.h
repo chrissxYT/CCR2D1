@@ -89,9 +89,10 @@ typedef int bool;
 
 #define D_E "E"
 #define D_0 " "
-#define D_1 "+"
-#define D_2 "#"
-#define D_3 "@"
+#define D_1 "░"
+#define D_2 "▒"
+#define D_3 "▓"
+#define D_4 "█"
 
 //a system() call failed
 #define ERR_SYSTEM_FAIL      0x00000001
