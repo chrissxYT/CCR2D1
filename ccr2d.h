@@ -1,20 +1,22 @@
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #ifdef _MSC_VER
 //disable the warning for spectre mitigations
 #pragma warning(disable :5040)
+//enable strcpy and other "unsafe" functions
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #if (defined(_WIN32) || defined(_WIN64)) && !defined(__CYGWIN__)
 #define WIN 1
+#define win(x) x
 #define UNIX 0
+#define unix(x)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <conio.h>
+#include <io.h>
+#include <fcntl.h>
 typedef HANDLE thread;
 typedef LPTHREAD_START_ROUTINE tstart;
 #ifdef CCR2D1_DLL
@@ -32,7 +34,9 @@ typedef LPTHREAD_START_ROUTINE tstart;
 	SetConsoleCursorPosition(GetConsoleWindow(), c)
 #else
 #define WIN 0
+#define win(x)
 #define UNIX 1
+#define unix(x) x
 #include <unistd.h>
 #include <pthread.h>
 typedef pthread_t thread;
@@ -47,6 +51,10 @@ typedef void *(*tstart) (void *);
 #define M_0_0() char *c = "\e[0;0f"; \
 	while (*c) putc(*c++, stdout)
 #endif
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 typedef unsigned uint;
 typedef unsigned long ulong;
@@ -100,12 +108,14 @@ typedef int bool;
 #define ERR_SYSTEM_FAIL      0x00000001
 //a SIGILL was caused
 #define ERR_SIGILL           0x00000002
-//a SIGFPE was caused
+//a SIGFPE (mett ellol) was caused
 #define ERR_SIGFPE           0x00000003
 //an unknown SIG occured
 #define ERR_ILLSIG           0x00000004
 //a header is not what it should be (usually CCR2D1P)
 #define ERR_INCORRECT_HEADER 0x00000005
+//a fread failed
+#define ERR_FREAD_FAIL       0x00000006
 
 errhdl error_handler = 0;
 
@@ -113,10 +123,19 @@ errhdl error_handler = 0;
 typedef struct
 {
 	//the char printed (str for utf8 support)
-	str dnsty;
+	char dnsty[256];
 	//ascii color code
-	str color;
+	char color[256];
+
+	//yes, using big dnsty and color buffers has pretty bad
+	//effects to memory efficiency.
+	//512 bytes, 0.5 f-ing k is a lot. thats 450 megs for 720p.
+	//but since we're only using small resolutions in the
+	//terminal (let's set 100x100 as an arbitrary max, which
+	//would be "only" 5 megs), it's more or less ok
 } pixel;
+
+#define palloc(n) malloc((n) * sizeof(pixel))
 
 //a sprite displayed on the screen
 typedef struct
@@ -229,13 +248,15 @@ CCR2D1_API void c2dkeladd(ccr2d1 *obj, kel ltr);
 //a memset for pixel arrays
 CCR2D1_API void pxlset(pixel *ptr, str dty, ulong num);
 
+//a version of memcpy respecting the type of dest and src
+#define typcpy(dest, src, n) \
+	for (ulong i = 0; i < n; i++) dest[i] = src[i]
+
 //a version of memcpy specifically and only for pixel arrays
-#define pxlcpy(dest, src, n) \
-	for (ulong i = 0; i < n; i++) dest[i] = src[i];
+#define pxlcpy(dest, src, n) typcpy(dest, src, n)
 
 //a version of memcpy specifically and only for sprite arrays
-#define sprcpy(dest, src, n) \
-	for (ulong i = 0; i < n; i++) dest[i] = src[i];
+#define sprcpy(dest, src, n) typcpy(dest, src, n)
 
 //creates a new thread that runs func with arg and returns it
 CCR2D1_API thread thread_create(tstart func, void *arg);

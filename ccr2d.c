@@ -188,10 +188,11 @@ void int_hdl(int i)
 {
 	if(i == SIGINT || i == SIGABRT || i == SIGTERM)
 	{
-#if !WIN
-		if(system("stty cooked") == -1)
-			error_handler(ERR_SYSTEM_FAIL);
-#endif
+		unix
+		(
+			if(system("stty cooked") == -1)
+				error_handler(ERR_SYSTEM_FAIL);
+		)
 		exit(0);
 	}
 	else error_handler(
@@ -246,19 +247,17 @@ CCR2D1_API void c2dstart(ccr2d1 *obj)
 	//asan does this
 	//signal(SIGSEGV, int_hdl);
 	signal(SIGTERM, int_hdl);
-	//this should clear but it doesnt
+	//this should clear on unix but it doesnt
 	//putc('\x0c', stdin);
-	system(
-#if WIN
-	"cls");
+	system(win("cls") unix("clear"));
 	//since Nov 2015 Windows 10 supports ASCII escape codes with this
-	SetConsoleMode(GetConsoleWindow(),
-		ENABLE_VIRTUAL_TERMINAL_PROCESSING);
-#else
-	"clear");
-	if(system("stty raw") == -1)
-		error_handler(ERR_SYSTEM_FAIL);
-#endif
+	win(SetConsoleMode(GetConsoleWindow(),
+		ENABLE_VIRTUAL_TERMINAL_PROCESSING));
+	unix
+	(
+		if(system("stty raw") == -1)
+			error_handler(ERR_SYSTEM_FAIL);
+	)
 	obj->run = 1;
 	obj->wkr[0] = thread_create(bs2p, obj);
 	obj->wkr[1] = thread_create(p2c, obj);
@@ -274,30 +273,29 @@ CCR2D1_API void c2dstop(ccr2d1 *obj)
 	thread_cancel(obj->wkr[1]);
 	thread_cancel(obj->wkr[2]);
 	thread_cancel(obj->wkr[3]);
-	for(uint i = 0; i < obj->hei; i++)
-	{
+	thread_cancel(obj->wkr[4]);
+	for (uint i = 0; i < obj->hei; i++)
 		free(obj->bfr.c[i]);
-	}
 	free(obj->bfr.c);
-	for(uint i = 0; i < obj->wid; i++)
-	{
+	for (uint i = 0; i < obj->wid; i++)
 		free(obj->bfr.p[i]);
-	}
 	free(obj->bfr.p);
 	free(obj->kel);
 	free(obj);
-#if !WIN
-	if(system("stty cooked") == -1)
-		error_handler(ERR_SYSTEM_FAIL);
-#endif
+	unix
+	(
+		if(system("stty cooked") == -1)
+			error_handler(ERR_SYSTEM_FAIL);
+	)
+	win(_setmode(_fileno(stdout), _O_U8TEXT));
 }
 
 CCR2D1_API void pxlset(pixel *ptr, str dty, ulong num)
 {
 	for(ulong j = 0; j < num; j++)
 	{
-		ptr[j].dnsty = dty;
-		ptr[j].color = C_NULL;
+		strcpy(ptr[j].dnsty, dty);
+		strcpy(ptr[j].color, C_NULL);
 	}
 }
 
@@ -324,23 +322,24 @@ CCR2D1_API void c2dldp(FILE *stream, pixel *buffer, uint *width, uint *height)
 	for(ulong i = 0; i < pc; i++)
 	{
 		int cl = fgetc(stream);
-		buffer[i].color = malloc(cl);
+		if (cl & 0xffffff00) error_handler(ERR_FREAD_FAIL);
+		buffer[i].color[cl] = '\0';
 		fread(buffer[i].color, 1, cl, stream);
 		int dl = fgetc(stream);
-		buffer[i].dnsty = malloc(dl);
+		if (dl & 0xffffff00) error_handler(ERR_FREAD_FAIL);
+		buffer[i].dnsty[dl] = '\0';
 		fread(buffer[i].dnsty, 1, dl, stream);
 	}
 }
 
 CCR2D1_API thread thread_create(tstart func, void *arg)
 {
-#if WIN
-	return CreateThread(0, 0, func, arg, 0, 0);
-#else
-	pthread_t p;
-	pthread_create(&p, 0, func, arg);
-	return p;
-#endif
+	win(return CreateThread(0, 0, func, arg, 0, 0));
+	unix (
+		pthread_t p;
+		pthread_create(&p, 0, func, arg);
+		return p;
+	)
 }
 
 CCR2D1_API pixel **pxlarr2dmallocxy(uint wid, uint hei)

@@ -8,8 +8,8 @@ Header
 
 Properties
 ----------
-{width << 24, width << 16, width <<  8, width,
-height << 24, height<< 16, height<<  8, height}
+{width << 24, width  << 16, width  << 8, width,
+height << 24, height << 16, height << 8, height}
 
 Pixels
 ------
@@ -19,5 +19,5 @@ for each pixel
 
 CCR2D1CompressedPicture
 =======================
-CCR2D1Ps might be compressed with GZip in the future, but it's too
-much of a hassle right now.
+CCR2D1Ps might be compressed with GZip/LZ4/LZ5/etc in the future,
+but it's too much of a hassle right now.
