@@ -82,7 +82,9 @@ TFUNC p2c(void *vargp)
 			for(ulong x = 0; x < obj->wid; x++)
 			{
 				pixel p = obj->bfr.p[x][y];
-				str s = p.color;
+				char t[256];
+				char *s = t;
+				sprintf(s, "\x1b[38;2;%d;%d;%dm", p.r, p.g, p.b);
 				while(*s) *bfr++ = *s++;
 				s = p.dnsty;
 				while(*s) *bfr++ = *s++;
@@ -295,7 +297,7 @@ CCR2D1_API void pxlset(pixel *ptr, str dty, ulong num)
 	for(ulong j = 0; j < num; j++)
 	{
 		strcpy(ptr[j].dnsty, dty);
-		strcpy(ptr[j].color, C_NULL);
+		ptr[j].r = ptr[j].g = ptr[j].b = 0xff;
 	}
 }
 
@@ -321,10 +323,11 @@ CCR2D1_API void c2dldp(FILE *stream, pixel *buffer, uint *width, uint *height)
 	ulong pc = *width * *height;
 	for(ulong i = 0; i < pc; i++)
 	{
-		int cl = fgetc(stream);
-		if (cl & 0xffffff00) error_handler(ERR_FREAD_FAIL);
-		buffer[i].color[cl] = '\0';
-		fread(buffer[i].color, 1, cl, stream);
+		char c[3];
+		fread(c, 1, 3, stream);
+		buffer[i].r = c[0];
+		buffer[i].g = c[1];
+		buffer[i].b = c[2];
 		int dl = fgetc(stream);
 		if (dl & 0xffffff00) error_handler(ERR_FREAD_FAIL);
 		buffer[i].dnsty[dl] = '\0';

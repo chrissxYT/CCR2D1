@@ -70,32 +70,7 @@ typedef int bool;
 
 #define SHIFTIN(x) (x[0] >> 24 | x[1] >> 16 | x[2] >> 8 | x[3])
 
-//using define for many string constants
-//because const-correctness would be a nightmare
-
-//All the color codes for the pixels
-#define C_RESET "\e[0m"
-#define C_BOLD "\e[1m"
-#define C_DIM "\e[2m"
-#define C_BLINK "\e[5m"
-#define C_HIDDEN "\e[8m"
-#define C_BLACK "\e[30m"
-#define C_RED "\e[31m"
-#define C_GREEN "\e[32m"
-#define C_YELLOW "\e[33m"
-#define C_BLUE "\e[34m"
-#define C_MAGENTA "\e[35m"
-#define C_CYAN "\e[36m"
-#define C_LIGHT_GRAY "\e[37m"
-#define C_DARK_GRAY "\e[90m"
-#define C_LIGHT_RED "\e[91m"
-#define C_LIGHT_GREEN "\e[92m"
-#define C_LIGHT_YELLOW "\e[93m"
-#define C_LIGHT_BLUE "\e[94m"
-#define C_LIGHT_MAGENTA "\e[95m"
-#define C_LIGHT_CYAN "\e[96m"
-#define C_WHITE "\e[97m"
-#define C_NULL ""
+#define color(p, _r, _g, _b) (p).r = _r; (p).g = _g; (p).b = _b
 
 #define D_E "E"
 #define D_0 " "
@@ -124,15 +99,11 @@ typedef struct
 {
 	//the char printed (str for utf8 support)
 	char dnsty[256];
-	//ascii color code
-	char color[256];
+	unsigned char r, g, b;
 
-	//yes, using big dnsty and color buffers has pretty bad
-	//effects to memory efficiency.
-	//512 bytes, 0.5 f-ing k is a lot. thats 450 megs for 720p.
-	//but since we're only using small resolutions in the
-	//terminal (let's set 100x100 as an arbitrary max, which
-	//would be "only" 5 megs), it's more or less ok
+	//yes, using a big dnsty buffer has pretty bad
+	//effects to memory efficiency, but at our typical
+	//resolution we don't care.
 } pixel;
 
 #define palloc(n) malloc((n) * sizeof(pixel))

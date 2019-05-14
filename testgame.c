@@ -33,9 +33,9 @@ int main()
 	c2dstart(obj);
 	pixel spr[9];
 	pxlset(spr, D_0, 9);
-	strcpy(spr[1].color, C_BLUE);
+	color(spr[1], 0, 0, 0xff);
 	strcpy(spr[1].dnsty, D_2);
-	strcpy(spr[4].color, C_GREEN);
+	color(spr[4], 0, 0xff, 0);
 	strcpy(spr[4].dnsty, D_1);
 	sid = c2dspradd(obj, 2, 2, 1, 3, 3, spr);
 	c2dkeladd(obj, keyh);

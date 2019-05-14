@@ -14,7 +14,7 @@ height << 24, height << 16, height << 8, height}
 Pixels
 ------
 for each pixel
-	{color.length, color, dnsty.length, dnsty}
+	{color (RGB), dnsty.length, dnsty}
 
 
 CCR2D1CompressedPicture
