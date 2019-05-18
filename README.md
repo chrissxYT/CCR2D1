@@ -1,4 +1,5 @@
 # CCR2D
+[![](https://tokei.rs/b1/github/chrissxYT/CCR2D)](https://github.com/chrissxYT/CCR2D)
 CConsoleRetro2D - A C library for NES/GB-like games in the console
 ## Disclaimer
 This library is not production ready, it's still full of bugs.
