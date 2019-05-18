@@ -76,7 +76,7 @@ TFUNC p2c(void *vargp)
 	{
 		for(ulong y = 0; y < obj->hei; y++)
 		{
-			ulong j = obj->wid * 10;
+			ulong j = obj->wid * 256;
 			char *bfr = malloc(j);
 			char *bfs = bfr;
 			for(ulong x = 0; x < obj->wid; x++)
@@ -223,7 +223,7 @@ CCR2D1_API ccr2d1 *c2dnew(pixel *bck, uint wid, uint hei,
 	obj->hei = hei;
 	obj->run = 0;
 	obj->bfr.c = malloc(hei * sizeof(char*));
-	for(ulong i = 0; i < hei; i++) obj->bfr.c[i] = malloc(wid*10);
+	for(ulong i = 0; i < hei; i++) obj->bfr.c[i] = malloc(wid*256);
 	obj->bfr.p = malloc(wid * sizeof(pixel*));
 	for(ulong i = 0; i < wid; i++)
 		obj->bfr.p[i] = malloc(hei * sizeof(pixel)),
@@ -311,27 +311,32 @@ CCR2D1_API void c2dldp(FILE *stream, pixel *buffer, uint *width, uint *height)
 {
 	char hcorrect[8] = {'C', 'C', 'R', '2', 'D', '1', 'P', '\x01'};
 	char hcheck[8];
-	fread(hcheck, 1, 8, stream);
+	if(!fread(hcheck, 1, 8, stream))
+		error_handler(ERR_FREAD_FAIL);
 	if(strncmp(hcorrect, hcheck, 8))
 		error_handler(ERR_INCORRECT_HEADER);
 	char rwid[4];
-	fread(rwid, 1, 4, stream);
+	if(!fread(rwid, 1, 4, stream))
+		error_handler(ERR_FREAD_FAIL);
 	*width = SHIFTIN(rwid);
 	char rhei[4];
-	fread(rhei, 1, 4, stream);
+	if(!fread(rhei, 1, 4, stream))
+		error_handler(ERR_FREAD_FAIL);
 	*height = SHIFTIN(rhei);
 	ulong pc = *width * *height;
 	for(ulong i = 0; i < pc; i++)
 	{
 		char c[3];
-		fread(c, 1, 3, stream);
+		if(!fread(c, 1, 3, stream))
+			error_handler(ERR_FREAD_FAIL);
 		buffer[i].r = c[0];
 		buffer[i].g = c[1];
 		buffer[i].b = c[2];
 		int dl = fgetc(stream);
 		if (dl & 0xffffff00) error_handler(ERR_FREAD_FAIL);
 		buffer[i].dnsty[dl] = '\0';
-		fread(buffer[i].dnsty, 1, dl, stream);
+		if(!fread(buffer[i].dnsty, 1, dl, stream))
+			error_handler(ERR_FREAD_FAIL);
 	}
 }
 
