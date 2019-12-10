@@ -48,7 +48,7 @@ typedef void *(*tstart) (void *);
 #define sleep_ms(MS) usleep((MS) * 1000)
 #define _PASSIVE_READ getchar
 //move the cursor to (0;0)
-#define M_0_0() char *c = "\e[0;0f"; \
+#define M_0_0() const char *c = "\e[0;0f"; \
 	while (*c) putc(*c++, stdout)
 #endif
 
@@ -97,13 +97,13 @@ errhdl error_handler = 0;
 //a single pixel in an image
 typedef struct
 {
-	//the char printed (str for utf8 support)
-	char dnsty[256];
-	unsigned char r, g, b;
+	//the char printed (not a single char for unicode support)
+	char dnsty[244];
+	unsigned int r, g, b;
 
 	//yes, using a big dnsty buffer has pretty bad
 	//effects to memory efficiency, but at our typical
-	//resolution we don't care.
+	//resolution we don't have to care.
 } pixel;
 
 #define palloc(n) malloc((n) * sizeof(pixel))
@@ -117,11 +117,9 @@ typedef struct
 	uint wid;
 	//height in console pixels
 	uint hei;
-	//x position
-	uint x;
-	//y position
-	uint y;
-	//array of pixels / the actual image, null means invalid
+	//x and y positions
+	uint x, y;
+	//array of pixels aka. the actual image; NULL = invalid
 	pixel *pxl;
 } sprite;
 
@@ -165,27 +163,27 @@ typedef struct
 
 typedef enum
 {
-	NONE = 0,
-	TL1,
-	TR1,
-	BL1,
-	BR1,
-	TL2,
-	TR2,
-	BL2,
-	BR2,
+	NONE = 0x0,
+	TL1 = 0x1,
+	TR1 = 0x2,
+	BL1 = 0x4,
+	BR1 = 0x8,
+	TL2 = 0x10,
+	TR2 = 0x20,
+	BL2 = 0x40,
+	BR2 = 0x80,
 } colpos;
 
 //mallocs a new CCR2D1 object,
 //sets width and height,
-//mallocs space for 2 workers,
+//mallocs space for the workers,
 //mallocs a wid * hei buffer,
 //mallocs space for max_spr sprites,
 //mallocs bck and copies it
 CCR2D1_API ccr2d1 *c2dnew(pixel *bck, uint wid, uint hei,
 		uint max_spr, uint slp, uint max_kel);
 
-//starts the 2 worker threads,
+//starts the worker threads,
 //sets run to true
 CCR2D1_API void c2dstart(ccr2d1 *obj);
 
