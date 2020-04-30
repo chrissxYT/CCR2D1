@@ -56,6 +56,7 @@ typedef void *(*tstart) (void *);
 #include <stdlib.h>
 #include <string.h>
 
+typedef unsigned short ushort;
 typedef unsigned uint;
 typedef unsigned long ulong;
 typedef char *str;
@@ -68,9 +69,12 @@ typedef void(*errhdl)(error);
 typedef int bool;
 #endif
 
-#define SHIFTIN(x) (x[0] >> 24 | x[1] >> 16 | x[2] >> 8 | x[3])
+#define LESHIFTIN16(x) ((x)[0] >> 8 | (x)[1])
+#define LESHIFTIN32(x) ((x)[0] >> 24 | (x)[1] >> 16 | (x)[2] >> 8 | (x)[3])
+#define BESHIFTIN16(x) ((x)[0] | (x)[1] >> 8)
+#define BESHIFTIN32(x) ((x)[0] | (x)[1] >> 8 | (x)[2] >> 16 | (x)[3] >> 24)
 
-#define color(p, _r, _g, _b) (p).r = _r; (p).g = _g; (p).b = _b
+#define color(p, _r, _g, _b) (p).r = (_r); (p).g = (_g); (p).b = (_b)
 
 #define D_E "E"
 #define D_0 " "
@@ -98,8 +102,8 @@ errhdl error_handler = 0;
 typedef struct
 {
 	//the char printed (not a single char for unicode support)
-	char dnsty[244];
-	unsigned int r, g, b;
+	char dnsty[250];
+	unsigned short r, g, b;
 
 	//yes, using a big dnsty buffer has pretty bad
 	//effects to memory efficiency, but at our typical
@@ -241,6 +245,12 @@ CCR2D1_API pixel **pxlarr2dmallocxy(uint wid, uint hei);
 //frees the given pixel array that's indexed [x][y]
 CCR2D1_API void pxlarr2dfreexy(pixel **pxl, uint wid);
 
-//load picture - reads a CCR2D1P from stream into buffer and sets
+//load picture - reads a picture from stream into buffer and sets
 //*width to the width and *height to the height
 CCR2D1_API void c2dldp(FILE *stream, pixel *buffer, uint *width, uint *height);
+
+CCR2D1_API void c2ddefaultalpha2dnsty(unsigned short alpha, char *dnsty);
+
+typedef void (*alpha2dnstyfunc) (unsigned short, pixel *);
+
+alpha2dnstyfunc alpha2dnsty = c2ddefaultalpha2dnsty;

@@ -309,7 +309,7 @@ CCR2D1_API void c2dkeladd(ccr2d1 *obj, kel ltr)
 
 CCR2D1_API void c2dldp(FILE *stream, pixel *buffer, uint *width, uint *height)
 {
-	char hcorrect[8] = {'C', 'C', 'R', '2', 'D', '1', 'P', '\x01'};
+	char hcorrect[8] = {'f', 'a', 'r', 'b', 'f', 'e', 'l', 'd'};
 	char hcheck[8];
 	if(!fread(hcheck, 1, 8, stream))
 		error_handler(ERR_FREAD_FAIL);
@@ -318,26 +318,42 @@ CCR2D1_API void c2dldp(FILE *stream, pixel *buffer, uint *width, uint *height)
 	char rwid[4];
 	if(!fread(rwid, 1, 4, stream))
 		error_handler(ERR_FREAD_FAIL);
-	*width = SHIFTIN(rwid);
+	*width = BESHIFTIN32(rwid);
 	char rhei[4];
 	if(!fread(rhei, 1, 4, stream))
 		error_handler(ERR_FREAD_FAIL);
-	*height = SHIFTIN(rhei);
+	*height = BESHIFTIN32(rhei);
 	ulong pc = *width * *height;
 	for(ulong i = 0; i < pc; i++)
 	{
-		char c[3];
-		if(!fread(c, 1, 3, stream))
+		char c[8];
+		if(!fread(c, 1, 8, stream))
 			error_handler(ERR_FREAD_FAIL);
-		buffer[i].r = c[0];
-		buffer[i].g = c[1];
-		buffer[i].b = c[2];
-		int dl = fgetc(stream);
-		if (dl & 0xffffff00) error_handler(ERR_FREAD_FAIL);
-		buffer[i].dnsty[dl] = '\0';
-		if(!fread(buffer[i].dnsty, 1, dl, stream))
-			error_handler(ERR_FREAD_FAIL);
+		buffer[i].r = BESHIFTIN16(c+0);
+		buffer[i].g = BESHIFTIN16(c+2);
+		buffer[i].b = BESHIFTIN16(c+4);
+                buffer[i].dnsty[0] = c[6];
+                buffer[i].dnsty[1] = c[7];
+                buffer[i].dnsty[2] = '\0';
+                // run a user supplied function to convert the raw
+                // alpha vals to chars maybe
 	}
+}
+
+CCR2D1_API void c2ddefaultalpha2dnsty(unsigned short alpha, char *dnsty)
+{
+             if(alpha == 0)
+                strcpy(D_0, dnsty);
+        else if(alpha == 100)
+                strcpy(D_1, dnsty);
+        else if(alpha == 200)
+                strcpy(D_2, dnsty);
+        else if(alpha == 300)
+                strcpy(D_3, dnsty);
+        else if(alpha == 400)
+                strcpy(D_4, dnsty);
+        else
+                strcpy(D_E, dnsty);
 }
 
 CCR2D1_API thread thread_create(tstart func, void *arg)
