@@ -1,9 +1,13 @@
-# CCR2D
-[![](https://tokei.rs/b1/github/chrissxYT/CCR2D)](https://github.com/chrissxYT/CCR2D)
-CConsoleRetro2D - A C library for NES/GB-like games in the console
+# CCR2D1 [![](https://tokei.rs/b1/github/pixelcmtd/CCR2D1)](https://github.com/pixelcmtd/CCR2D1)
+
+CConsoleRetro2D version 1 - A C library for NES/GB-like games in the console
+
 ## Disclaimer
+
 This library is not production ready, it's still full of bugs.
+
 ## Sample code
+
 ```c
 #include "ccr2d.h"
 
